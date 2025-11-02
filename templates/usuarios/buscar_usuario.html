@@ -4,7 +4,7 @@
 {% block title %}Gestión de Usuarios - ServiHogar{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/gestion-comun.css' %}">
+<link rel="stylesheet" href="{% static 'css/gestion-comun.css' %}?v=5.0">
 <style>
 /* Estilos específicos adicionales para usuarios */
 </style>
@@ -74,24 +74,54 @@
         
         {% if usuarios %}
         <div class="usuarios-table-container">
-            <table class="usuarios-table">
+            <table class="usuarios-table gestion-table">
                 <thead>
                     <tr>
-                        <th>Usuario</th>
-                        <th>Nombre Completo</th>
-                        <th>Email</th>
+                        <th>
+                            <a href="?{% if request.GET.nombre %}nombre={{ request.GET.nombre }}&{% endif %}{% if request.GET.apellido %}apellido={{ request.GET.apellido }}&{% endif %}{% if request.GET.rol %}rol={{ request.GET.rol }}&{% endif %}{% if request.GET.estado %}estado={{ request.GET.estado }}&{% endif %}orden=id&dir={% if orden_actual == 'id' and dir_actual == 'asc' %}desc{% else %}asc{% endif %}">
+                                ID {% if orden_actual == 'id' %}{% if dir_actual == 'asc' %}▲{% else %}▼{% endif %}{% endif %}
+                            </a>
+                        </th>
+                        <th>
+                            <a href="?{% if request.GET.nombre %}nombre={{ request.GET.nombre }}&{% endif %}{% if request.GET.apellido %}apellido={{ request.GET.apellido }}&{% endif %}{% if request.GET.rol %}rol={{ request.GET.rol }}&{% endif %}{% if request.GET.estado %}estado={{ request.GET.estado }}&{% endif %}orden=username&dir={% if orden_actual == 'username' and dir_actual == 'asc' %}desc{% else %}asc{% endif %}">
+                                Usuario {% if orden_actual == 'username' %}{% if dir_actual == 'asc' %}▲{% else %}▼{% endif %}{% endif %}
+                            </a>
+                        </th>
+                        <th>
+                            <a href="?{% if request.GET.nombre %}nombre={{ request.GET.nombre }}&{% endif %}{% if request.GET.apellido %}apellido={{ request.GET.apellido }}&{% endif %}{% if request.GET.rol %}rol={{ request.GET.rol }}&{% endif %}{% if request.GET.estado %}estado={{ request.GET.estado }}&{% endif %}orden=first_name&dir={% if orden_actual == 'first_name' and dir_actual == 'asc' %}desc{% else %}asc{% endif %}">
+                                Nombre Completo {% if orden_actual == 'first_name' %}{% if dir_actual == 'asc' %}▲{% else %}▼{% endif %}{% endif %}
+                            </a>
+                        </th>
+                        <th>
+                            <a href="?{% if request.GET.nombre %}nombre={{ request.GET.nombre }}&{% endif %}{% if request.GET.apellido %}apellido={{ request.GET.apellido }}&{% endif %}{% if request.GET.rol %}rol={{ request.GET.rol }}&{% endif %}{% if request.GET.estado %}estado={{ request.GET.estado }}&{% endif %}orden=email&dir={% if orden_actual == 'email' and dir_actual == 'asc' %}desc{% else %}asc{% endif %}">
+                                Email {% if orden_actual == 'email' %}{% if dir_actual == 'asc' %}▲{% else %}▼{% endif %}{% endif %}
+                            </a>
+                        </th>
                         <th>Rol</th>
                         <th>Teléfono</th>
                         <th>Estado</th>
-                        <th>Fecha Registro</th>
-                        <th>Fecha Modificación</th>
-                        <th>Fecha Eliminación</th>
+                        <th>
+                            <a href="?{% if request.GET.nombre %}nombre={{ request.GET.nombre }}&{% endif %}{% if request.GET.apellido %}apellido={{ request.GET.apellido }}&{% endif %}{% if request.GET.rol %}rol={{ request.GET.rol }}&{% endif %}{% if request.GET.estado %}estado={{ request.GET.estado }}&{% endif %}orden=fecha_registro&dir={% if orden_actual == 'fecha_registro' and dir_actual == 'asc' %}desc{% else %}asc{% endif %}">
+                                Fecha Registro {% if orden_actual == 'fecha_registro' %}{% if dir_actual == 'asc' %}▲{% else %}▼{% endif %}{% endif %}
+                            </a>
+                        </th>
+                        <th>
+                            <a href="?{% if request.GET.nombre %}nombre={{ request.GET.nombre }}&{% endif %}{% if request.GET.apellido %}apellido={{ request.GET.apellido }}&{% endif %}{% if request.GET.rol %}rol={{ request.GET.rol }}&{% endif %}{% if request.GET.estado %}estado={{ request.GET.estado }}&{% endif %}orden=fecha_modificacion&dir={% if orden_actual == 'fecha_modificacion' and dir_actual == 'asc' %}desc{% else %}asc{% endif %}">
+                                Fecha Modificación {% if orden_actual == 'fecha_modificacion' %}{% if dir_actual == 'asc' %}▲{% else %}▼{% endif %}{% endif %}
+                            </a>
+                        </th>
+                        <th>
+                            <a href="?{% if request.GET.nombre %}nombre={{ request.GET.nombre }}&{% endif %}{% if request.GET.apellido %}apellido={{ request.GET.apellido }}&{% endif %}{% if request.GET.rol %}rol={{ request.GET.rol }}&{% endif %}{% if request.GET.estado %}estado={{ request.GET.estado }}&{% endif %}orden=fecha_eliminacion&dir={% if orden_actual == 'fecha_eliminacion' and dir_actual == 'asc' %}desc{% else %}asc{% endif %}">
+                                Fecha Eliminación {% if orden_actual == 'fecha_eliminacion' %}{% if dir_actual == 'asc' %}▲{% else %}▼{% endif %}{% endif %}
+                            </a>
+                        </th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for usuario in usuarios %}
                     <tr class="{% if not usuario.activo %}usuario-inactivo{% endif %}">
+                        <td>{{ usuario.id }}</td>
                         <td>
                             <div class="usuario-info">
                                 {% if usuario.foto_perfil %}
@@ -121,11 +151,11 @@
                             <span class="badge badge-danger">✗ Inactivo</span>
                             {% endif %}
                         </td>
-                        <td>{{ usuario.fecha_registro|date:"d/m/Y" }}</td>
-                        <td>{{ usuario.fecha_modificacion|date:"d/m/Y" }}</td>
+                        <td>{{ usuario.fecha_registro|date:"d/m/Y H:i" }}</td>
+                        <td>{{ usuario.fecha_modificacion|date:"d/m/Y H:i" }}</td>
                         <td>
                             {% if usuario.fecha_eliminacion %}
-                                {{ usuario.fecha_eliminacion|date:"d/m/Y" }}
+                                {{ usuario.fecha_eliminacion|date:"d/m/Y H:i" }}
                             {% else %}
                                 -
                             {% endif %}
@@ -137,6 +167,8 @@
                                     <a href="{% url 'usuarios:modificar_usuario' usuario.id %}" class="btn btn-sm btn-primary" title="Editar">Editar</a>
                                     {% if usuario.activo %}
                                         <a href="{% url 'usuarios:eliminar_usuario' usuario.id %}" class="btn btn-sm btn-danger" title="Eliminar" onclick="return confirm('¿Eliminar este usuario?')">Eliminar</a>
+                                    {% else %}
+                                        <a href="{% url 'usuarios:activar_usuario' usuario.id %}" class="btn btn-sm btn-success" title="Activar">Activar</a>
                                     {% endif %}
                                 {% endif %}
                             </div>
@@ -158,9 +190,9 @@
             </div>
         </div>
         {% else %}
-        <div class="no-resultados">
-            <p>No se encontraron usuarios con los criterios especificados</p>
-            <a href="{% url 'usuarios:buscar_usuario' %}" class="btn btn-secondary">Limpiar filtros</a>
+        <div class="no-resultados" style="text-align: center; padding: 3rem 2rem;">
+            <p style="font-size: 1.1rem; color: #666; margin-bottom: 1.5rem;">No se encontraron usuarios con los criterios especificados</p>
+            <a href="{% url 'usuarios:buscar_usuario' %}" class="btn btn-secondary" style="display: inline-block;">Limpiar filtros</a>
         </div>
         {% endif %}
     </div>

@@ -244,7 +244,7 @@ def modificar_usuario(request, id):
     # El admin no puede modificar otros administradores
     if usuario.is_administrador():
         messages.error(request, 'No puedes modificar otros administradores')
-        return redirect('usuarios:listar_usuarios')
+        return redirect('usuarios:buscar_usuario')
     
     if request.method == 'POST':
         form = ModificarUsuarioForm(request.POST, request.FILES, instance=usuario)
@@ -262,6 +262,7 @@ def modificar_usuario(request, id):
                 usuario_actualizado.fecha_eliminacion = timezone.now()
             
             usuario_actualizado.save()
+            
             
             # Si es profesional, actualizar servicios y horarios
             if usuario_actualizado.rol == 'profesional':
@@ -365,6 +366,26 @@ def eliminar_usuario(request, id):
     return render(request, 'usuarios/eliminar_usuario.html', {'usuario': usuario})
 
 
+# Vista auxiliar para reactivar usuario
+@user_passes_test(es_administrador)
+def activar_usuario(request, id):
+    """Administrador reactiva usuario (cliente o profesional) - Limpia fecha de eliminación"""
+    usuario = get_object_or_404(Usuario, id=id)
+    
+    # El admin no puede reactivar otros administradores (no deberían estar desactivados)
+    if usuario.is_administrador():
+        messages.error(request, 'No puedes modificar otros administradores')
+        return redirect('usuarios:buscar_usuario')
+    
+    # Reactivar usuario y limpiar fecha de eliminación
+    usuario.activo = True
+    usuario.fecha_eliminacion = None
+    usuario.save()
+    
+    messages.success(request, f'Usuario {usuario.username} activado exitosamente')
+    return redirect('usuarios:buscar_usuario')
+
+
 # CU-04: Registrar Usuario (ADMINISTRADOR registra cliente o profesional)
 @user_passes_test(es_administrador)
 def registrar_usuario_admin(request):
@@ -404,7 +425,7 @@ def registrar_usuario_admin(request):
                         servicio.save()
             
             messages.success(request, f'Usuario {user.username} registrado exitosamente como {user.get_rol_display()}')
-            return redirect('usuarios:listar_usuarios')
+            return redirect('usuarios:buscar_usuario')
     else:
         form = RegistrarUsuarioAdminForm()
     
@@ -447,16 +468,41 @@ def buscar_usuario(request):
             elif form.cleaned_data['estado'] == 'inactivo':
                 usuarios = usuarios.filter(activo=False)
     
-    usuarios = usuarios.order_by('-fecha_registro')
+    # Ordenamiento dinámico
+    orden = request.GET.get('orden', 'fecha_registro')
+    direccion = request.GET.get('dir', 'desc')
     
-    return render(request, 'usuarios/buscar_usuario.html', {'form': form, 'usuarios': usuarios})
-
-
-@user_passes_test(es_administrador)
-def listar_usuarios(request):
-    """Lista todos los usuarios activos (solo administrador)"""
-    usuarios = Usuario.objects.filter(activo=True).exclude(rol='administrador').order_by('-fecha_registro')
-    return render(request, 'usuarios/listar_usuarios.html', {'usuarios': usuarios})
+    # Mapeo de campos válidos para ordenamiento
+    campos_validos = {
+        'id': 'id',
+        'username': 'username',
+        'first_name': 'first_name',
+        'email': 'email',
+        'rol': 'rol',
+        'activo': 'activo',
+        'fecha_registro': 'fecha_registro',
+        'fecha_modificacion': 'fecha_modificacion',
+        'fecha_eliminacion': 'fecha_eliminacion'
+    }
+    
+    # Obtener el campo de ordenamiento
+    campo_orden = campos_validos.get(orden, 'fecha_registro')
+    
+    # Aplicar dirección (ascendente o descendente)
+    if direccion == 'desc':
+        campo_orden = f'-{campo_orden}'
+    
+    usuarios = usuarios.order_by(campo_orden)
+    
+    # Pasar variables de contexto para el template
+    context = {
+        'form': form,
+        'usuarios': usuarios,
+        'orden_actual': orden,
+        'dir_actual': direccion
+    }
+    
+    return render(request, 'usuarios/buscar_usuario.html', context)
 
 
 @login_required

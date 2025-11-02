@@ -162,7 +162,8 @@
 .data-table,
 .usuarios-table,
 .servicios-table,
-.categorias-table {
+.categorias-table,
+.gestion-table {
     width: 100%;
     border-collapse: collapse;
     font-size: 0.95rem;
@@ -171,27 +172,48 @@
 .data-table thead,
 .usuarios-table thead,
 .servicios-table thead,
-.categorias-table thead {
-    background: #f8f9fa;
+.categorias-table thead,
+.gestion-table thead {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
 .data-table th,
 .usuarios-table th,
 .servicios-table th,
-.categorias-table th {
+.categorias-table th,
+.gestion-table th {
     padding: 1.1rem 1.2rem;
     text-align: left;
     font-weight: 600;
-    color: #495057;
+    color: white;
     border-bottom: 2px solid #dee2e6;
     font-size: 0.9rem;
     text-transform: uppercase;
 }
 
+.data-table th a,
+.usuarios-table th a,
+.servicios-table th a,
+.categorias-table th a,
+.gestion-table th a {
+    color: white;
+    text-decoration: none;
+    display: block;
+}
+
+.data-table th a:hover,
+.usuarios-table th a:hover,
+.servicios-table th a:hover,
+.categorias-table th a:hover,
+.gestion-table th a:hover {
+    opacity: 0.9;
+}
+
 .data-table td,
 .usuarios-table td,
 .servicios-table td,
-.categorias-table td {
+.categorias-table td,
+.gestion-table td {
     padding: 0.9rem 1.2rem;
     border-bottom: 1px solid #dee2e6;
     color: #495057;

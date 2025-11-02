@@ -8,6 +8,8 @@ class Categoria(models.Model):
     icono = models.CharField(max_length=50, blank=True, null=True)
     activa = models.BooleanField(default=True)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_modificacion = models.DateTimeField(auto_now=True)
+    fecha_eliminacion = models.DateTimeField(null=True, blank=True)
     
     class Meta:
         verbose_name = 'Categoría'
@@ -28,7 +30,8 @@ class Servicio(models.Model):
     duracion_estimada = models.IntegerField(help_text="Duración en minutos")
     activo = models.BooleanField(default=True)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
-    fecha_actualizacion = models.DateTimeField(auto_now=True)
+    fecha_modificacion = models.DateTimeField(auto_now=True)
+    fecha_eliminacion = models.DateTimeField(null=True, blank=True)
     
     class Meta:
         verbose_name = 'Servicio'
