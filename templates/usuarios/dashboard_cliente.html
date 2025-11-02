@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard Cliente - ServiHogar{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <h1>Dashboard Cliente</h1>
+        <p>Bienvenido, <strong>{{ user.get_full_name }}</strong></p>
+    </div>
+
+    <!-- Acciones rápidas -->
+    <div class="quick-actions">
+        <h2>Acciones Rápidas</h2>
+        <div class="action-buttons">
+            <a href="{% url 'turnos:solicitar_turno' %}" class="btn btn-primary"> Solicitar Turno</a>
+            <a href="{% url 'servicios:buscar_servicio' %}" class="btn btn-secondary">Buscar Servicios</a>
+            <a href="{% url 'turnos:historial_turnos' %}" class="btn btn-secondary">Ver Historial</a>
+            <a href="{% url 'usuarios:perfil' user.id %}" class="btn btn-secondary">Mi Perfil</a>
+        </div>
+    </div>
+
+    <!-- Estadísticas -->
+    <div class="stats-container">
+        <div class="stat-card">
+            <h3>Total de Turnos</h3>
+            <p class="stat-number">{{ total_turnos }}</p>
+        </div>
+        <div class="stat-card">
+            <h3>Turnos Pendientes</h3>
+            <p class="stat-number">{{ turnos_pendientes.count }}</p>
+        </div>
+        <div class="stat-card">
+            <h3>Turnos Confirmados</h3>
+            <p class="stat-number">{{ turnos_confirmados.count }}</p>
+        </div>
+    </div>
+
+    <!-- Turnos pendientes -->
+    {% if turnos_pendientes %}
+    <div class="dashboard-section">
+        <h2>Turnos Pendientes de Confirmación</h2>
+        <table class="table">
+                        <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Hora</th>
+                    <th>Servicio</th>
+                    <th>Profesional</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for turno in turnos_pendientes %}
+                <tr>
+                    <td>{{ turno.fecha|date:"d/m/Y" }}</td>
+                    <td>{{ turno.hora|time:"H:i" }}</td>
+                    <td>{{ turno.servicio.nombre }}</td>
+                    <td>{{ turno.profesional.usuario.get_full_name }}</td>
+                    <td><span class="badge badge-warning">{{ turno.get_estado_display }}</span></td>
+                    <td>
+                        <a href="{% url 'turnos:ver_turno' turno.id %}" class="btn btn-sm">Ver</a>
+                        <a href="{% url 'turnos:cancelar_turno' turno.id %}" class="btn btn-sm btn-danger">Cancelar</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    <!-- Turnos confirmados -->
+    {% if turnos_confirmados %}
+    <div class="dashboard-section">
+        <h2>Próximos Turnos Confirmados</h2>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Hora</th>
+                    <th>Servicio</th>
+                    <th>Profesional</th>
+                    <th>Precio</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for turno in turnos_confirmados %}
+                <tr>
+                    <td>{{ turno.fecha|date:"d/m/Y" }}</td>
+                    <td>{{ turno.hora|time:"H:i" }}</td>
+                    <td>{{ turno.servicio.nombre }}</td>
+                    <td>{{ turno.profesional.usuario.get_full_name }}</td>
+                    <td>${{ turno.precio_final }}</td>
+                    <td>
+                        <a href="{% url 'turnos:ver_turno' turno.id %}" class="btn btn-sm">Ver Detalles</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    <!-- Historial reciente -->
+    {% if historial_turnos %}
+    <div class="dashboard-section">
+        <h2>Historial Reciente</h2>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Servicio</th>
+                    <th>Profesional</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for turno in historial_turnos %}
+                <tr>
+                    <td>{{ turno.fecha|date:"d/m/Y" }}</td>
+                    <td>{{ turno.servicio.nombre }}</td>
+                    <td>{{ turno.profesional.usuario.get_full_name }}</td>
+                    <td>
+                        {% if turno.estado == 'completado' %}
+                        <span class="badge badge-success">Completado</span>
+                        {% else %}
+                        <span class="badge badge-danger">Cancelado</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{% url 'turnos:ver_turno' turno.id %}" class="btn btn-sm">Ver</a>
+                        {% if turno.estado == 'completado' and not turno.calificaciones.exists %}
+                        <a href="{% url 'turnos:calificar_turno' turno.id %}" class="btn btn-sm btn-primary">Calificar</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <a href="{% url 'turnos:historial_turnos' %}" class="btn btn-secondary">Ver Historial Completo</a>
+    </div>
+    {% endif %}
+
+    <!-- Servicios destacados -->
+    {% if servicios_destacados %}
+    <div class="dashboard-section">
+        <h2>Servicios Destacados</h2>
+        <div class="services-grid">
+            {% for servicio in servicios_destacados %}
+            <div class="service-card">
+                <h3>{{ servicio.nombre }}</h3>
+                <p>{{ servicio.descripcion|truncatewords:20 }}</p>
+                <p><strong>Precio:</strong> ${{ servicio.precio }}</p>
+                <a href="{% url 'turnos:solicitar_turno' %}?servicio={{ servicio.id }}" class="btn btn-primary">Solicitar</a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

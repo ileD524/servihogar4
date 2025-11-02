@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ politica.titulo }} - ServiHogar{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="politica-detalle">
+        <h1>{{ politica.titulo }}</h1>
+        
+        <div class="politica-estado">
+            <span class="badge {% if politica.activa %}badge-success{% else %}badge-secondary{% endif %}">
+                {% if politica.activa %}Activa{% else %}Inactiva{% endif %}
+            </span>
+        </div>
+        
+        <section>
+            <h2>Descripción</h2>
+            <p>{{ politica.descripcion }}</p>
+        </section>
+        
+        <section>
+            <h2>Detalles</h2>
+            <div class="info-grid">
+                <div class="info-item">
+                    <strong>Horas de anticipación:</strong>
+                    <p>{{ politica.horas_anticipacion }} horas</p>
+                </div>
+                <div class="info-item">
+                    <strong>Penalización:</strong>
+                    <p>{{ politica.penalizacion_porcentaje }}%</p>
+                </div>
+                <div class="info-item">
+                    <strong>Fecha de creación:</strong>
+                    <p>{{ politica.fecha_creacion|date:"d/m/Y" }}</p>
+                </div>
+                <div class="info-item">
+                    <strong>Última actualización:</strong>
+                    <p>{{ politica.fecha_actualizacion|date:"d/m/Y" }}</p>
+                </div>
+            </div>
+        </section>
+        
+        {% if user.is_administrador %}
+            <div class="politica-acciones">
+                <a href="{% url 'politicas:modificar_politica_cancelacion' politica.id %}" class="btn btn-warning">Modificar</a>
+                <a href="{% url 'politicas:eliminar_politica_cancelacion' politica.id %}" class="btn btn-danger">Eliminar</a>
+                <a href="{% url 'politicas:buscar_politica' %}" class="btn btn-secondary">⬅ Volver</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.politica-detalle {
+    background-color: var(--white);
+    padding: 2rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+}
+
+.politica-estado {
+    margin: 1rem 0 2rem 0;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1rem;
+}
+
+.info-item {
+    background-color: var(--light-bg);
+    padding: 1rem;
+    border-radius: var(--border-radius);
+}
+
+.info-item strong {
+    display: block;
+    color: var(--primary-color);
+    margin-bottom: 0.5rem;
+}
+
+.politica-acciones {
+    margin-top: 2rem;
+    display: flex;
+    gap: 1rem;
+}
+</style>
+{% endblock %}

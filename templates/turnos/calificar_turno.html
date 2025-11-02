@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block title %}Calificar Turno - ServiHogar{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <h1>Calificar Turno</h1>
+    
+    <div class="turno-info-calificar">
+        <h2>{{ turno.servicio.nombre }}</h2>
+        <p><strong>Profesional:</strong> {{ turno.profesional.usuario.get_full_name }}</p>
+        <p><strong>Fecha:</strong> {{ turno.fecha_hora|date:"d/m/Y H:i" }}</p>
+    </div>
+    
+    <form method="post" class="form">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label>{{ form.puntuacion.label }}:</label>
+            <div class="rating-selector">
+                {{ form.puntuacion }}
+            </div>
+            {% if form.puntuacion.errors %}
+                <span class="error">{{ form.puntuacion.errors.0 }}</span>
+            {% endif %}
+        </div>
+        
+        <div class="form-group">
+            <label for="{{ form.comentario.id_for_label }}">{{ form.comentario.label }}:</label>
+            {{ form.comentario }}
+            {% if form.comentario.errors %}
+                <span class="error">{{ form.comentario.errors.0 }}</span>
+            {% endif %}
+        </div>
+        
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Enviar Calificación</button>
+            <a href="{% url 'turnos:ver_turno' turno.id %}" class="btn btn-secondary">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

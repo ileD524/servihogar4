@@ -1,0 +1,749 @@
+{% extends 'base.html' %}
+
+{% block title %}Modificar Usuario - ServiHogar{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <h1>Modificar Usuario</h1>
+    
+    <form method="post" enctype="multipart/form-data" class="form" id="modificar-form">
+        {% csrf_token %}
+        
+        <div class="form-section">
+            <h3>Información Personal</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="{{ form.first_name.id_for_label }}">{{ form.first_name.label }}:</label>
+                    {{ form.first_name }}
+                    {% if form.first_name.errors %}
+                        <span class="error">{{ form.first_name.errors.0 }}</span>
+                    {% endif %}
+                </div>
+                
+                <div class="form-group">
+                    <label for="{{ form.last_name.id_for_label }}">{{ form.last_name.label }}:</label>
+                    {{ form.last_name }}
+                    {% if form.last_name.errors %}
+                        <span class="error">{{ form.last_name.errors.0 }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ form.email.id_for_label }}">{{ form.email.label }}:</label>
+                {{ form.email }}
+                {% if form.email.errors %}
+                    <span class="error">{{ form.email.errors.0 }}</span>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ form.telefono.id_for_label }}">{{ form.telefono.label }}:</label>
+                {{ form.telefono }}
+                {% if form.telefono.errors %}
+                    <span class="error">{{ form.telefono.errors.0 }}</span>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ form.direccion.id_for_label }}">{{ form.direccion.label }}:</label>
+                {{ form.direccion }}
+                {% if form.direccion.errors %}
+                    <span class="error">{{ form.direccion.errors.0 }}</span>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label>Foto de perfil:</label>
+                <div class="foto-perfil-container">
+                    {% if usuario.foto_perfil %}
+                        <div class="foto-preview-section">
+                            <img src="{{ usuario.foto_perfil.url }}" alt="Foto actual" class="foto-preview">
+                            <div class="foto-actions">
+                                <button type="button" class="btn-cambiar-foto" id="btn-cambiar-foto">
+                                    Cambiar
+                                </button>
+                                <label class="btn-eliminar-foto">
+                                    <input type="checkbox" name="foto_perfil-clear" id="foto_perfil-clear_id">
+                                    <span>Eliminar</span>
+                                </label>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="foto-sin-imagen">
+                            <p>No hay foto de perfil</p>
+                            <button type="button" class="btn-cambiar-foto" id="btn-cambiar-foto">
+                                Seleccionar Foto
+                            </button>
+                        </div>
+                    {% endif %}
+                    <div class="foto-upload" id="foto-upload" style="display: none;">
+                        {{ form.foto_perfil }}
+                    </div>
+                </div>
+                {% if form.foto_perfil.errors %}
+                    <span class="error">{{ form.foto_perfil.errors.0 }}</span>
+                {% endif %}
+            </div>
+            
+            {% if user.is_administrador and user.id != usuario.id %}
+            <div class="form-group">
+                <label>Estado del usuario:</label>
+                <div class="estado-container">
+                    <button type="button" id="toggle-activo" class="btn {% if usuario.activo %}btn-success{% else %}btn-danger{% endif %}">
+                        <span class="estado-icon">{% if usuario.activo %}✓{% else %}✗{% endif %}</span>
+                        <span class="estado-texto">{% if usuario.activo %}Usuario Activo{% else %}Usuario Inactivo{% endif %}</span>
+                    </button>
+                    <input type="checkbox" name="activo" id="id_activo" {% if usuario.activo %}checked{% endif %} style="display: none;">
+                </div>
+            </div>
+            {% else %}
+            {{ form.activo }}
+            {% endif %}
+        </div>
+        
+        <!-- Sección de profesional -->
+        {% if usuario.rol == 'profesional' %}
+        <div class="form-section" id="profesional-section">
+            <h3>Configuración de Profesional</h3>
+            
+            <!-- Años de experiencia -->
+            <div class="form-group">
+                <label for="{{ form.anios_experiencia.id_for_label }}">Años de experiencia</label>
+                {{ form.anios_experiencia }}
+                {% if form.anios_experiencia.errors %}
+                    <div class="error">{{ form.anios_experiencia.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <!-- Selección de servicios -->
+            <div class="form-group">
+                <label class="section-label">Servicios que ofrece</label>
+                <div class="servicios-grid">
+                    {% for servicio in form.servicios.field.queryset %}
+                    <div class="servicio-card">
+                        <div class="servicio-header">
+                            <input type="checkbox" name="servicios" value="{{ servicio.id }}"
+                                id="servicio_{{ servicio.id }}"
+                                {% if servicio.profesional and servicio.profesional.usuario.id == usuario.id %}checked{% endif %}>
+                            <label for="servicio_{{ servicio.id }}">{{ servicio.nombre }}</label>
+                        </div>
+                        <div class="servicio-details">
+                            <span class="badge-categoria">{{ servicio.categoria.nombre }}</span>
+                            <p class="servicio-descripcion">{{ servicio.descripcion }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <!-- Horarios de disponibilidad -->
+            <div class="form-group">
+                <label class="section-label">
+                    Horarios de Disponibilidad
+                    {% if user.is_administrador and user.id != usuario.id %}
+                        <span style="color: #666; font-weight: normal; font-size: 0.9em;">(Opcional)</span>
+                    {% endif %}
+                </label>
+                <div id="horarios-container"
+                     data-horarios="{{ horarios_actuales|escapejs }}"
+                     data-es-admin-editando-otro="{% if user.is_administrador and user.id != usuario.id %}true{% else %}false{% endif %}">
+                    <!-- Se llenarán dinámicamente con JavaScript -->
+                </div>
+                <button type="button" id="add-horario" class="btn btn-secondary">
+                    <span>+</span> Agregar Horario
+                </button>
+            </div>
+            
+            {{ form.horarios_json }}
+        </div>
+        {% endif %}
+        
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+            <a href="{% url 'usuarios:perfil' usuario.id %}" class="btn btn-secondary">Cancelar</a>
+        </div>
+    </form>
+</div>
+
+<style>
+.form-section {
+    background: white;
+    padding: 25px;
+    margin-bottom: 25px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.form-section h3 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: #2c3e50;
+    border-bottom: 2px solid #3498db;
+    padding-bottom: 10px;
+    font-size: 1.3em;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+/* Estilos para foto de perfil */
+.foto-perfil-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.foto-preview-section {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 2px solid #e0e0e0;
+}
+
+.foto-preview {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 3px solid #ddd;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.foto-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-cambiar-foto {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: #3498db;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.3s;
+    font-weight: 500;
+    font-size: 1em;
+}
+
+.btn-cambiar-foto:hover {
+    background: #2980b9;
+}
+
+.btn-eliminar-foto {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: #e74c3c;
+    color: white;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.3s;
+    font-weight: 500;
+}
+
+.btn-eliminar-foto:hover {
+    background: #c0392b;
+}
+
+.btn-eliminar-foto input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.foto-sin-imagen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    padding: 30px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 2px dashed #ddd;
+    text-align: center;
+}
+
+.foto-sin-imagen p {
+    color: #666;
+    margin: 0;
+    font-size: 1em;
+}
+
+.foto-upload {
+    padding: 15px;
+    background: white;
+    border: 2px dashed #3498db;
+    border-radius: 8px;
+    text-align: center;
+    position: absolute;
+    left: -9999px;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.foto-upload input[type="file"] {
+    cursor: pointer;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background: white;
+    width: 100%;
+    max-width: 400px;
+}
+
+.foto-upload input[type="file"]:hover {
+    border-color: #3498db;
+    background: #f8f9fa;
+}
+
+/* Estilos para botón de estado */
+.estado-container {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+#toggle-activo {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 20px;
+    font-size: 1em;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-success {
+    background: #27ae60;
+    color: white;
+}
+
+.btn-success:hover {
+    background: #229954;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(39, 174, 96, 0.3);
+}
+
+.btn-danger {
+    background: #e74c3c;
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #c0392b;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(231, 76, 60, 0.3);
+}
+
+.estado-icon {
+    font-size: 1.2em;
+    font-weight: bold;
+}
+
+.estado-texto {
+    font-size: 1em;
+}
+
+.section-label {
+    display: block;
+    font-weight: 600;
+    font-size: 1.1em;
+    color: #2c3e50;
+    margin-bottom: 15px;
+}
+
+/* Estilos de servicios - Grid moderno */
+.servicios-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 15px;
+    max-height: 500px;
+    overflow-y: auto;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.servicio-card {
+    background: white;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 15px;
+    transition: all 0.3s ease;
+}
+
+.servicio-card:hover {
+    border-color: #3498db;
+    box-shadow: 0 4px 8px rgba(52, 152, 219, 0.2);
+    transform: translateY(-2px);
+}
+
+.servicio-card input[type="checkbox"]:checked + label {
+    color: #3498db;
+    font-weight: 600;
+}
+
+.servicio-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.servicio-header input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.servicio-header label {
+    flex: 1;
+    margin: 0;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 1.05em;
+    color: #2c3e50;
+}
+
+.servicio-details {
+    padding-left: 30px;
+    border-left: 3px solid #e0e0e0;
+    margin-left: 10px;
+}
+
+.badge-categoria {
+    display: inline-block;
+    background: #3498db;
+    color: white;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.85em;
+    font-weight: 500;
+    margin-bottom: 8px;
+}
+
+.servicio-descripcion {
+    color: #555;
+    font-size: 0.95em;
+    margin: 8px 0;
+    line-height: 1.4;
+}
+
+.servicio-meta {
+    display: flex;
+    gap: 15px;
+    margin-top: 10px;
+}
+
+.meta-item {
+    color: #666;
+    font-size: 0.9em;
+    font-weight: 500;
+}
+
+/* Estilos de horarios - Mejorados */
+#horarios-container {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+
+.horario-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr auto;
+    gap: 15px;
+    margin-bottom: 12px;
+    align-items: center;
+    background: white;
+    padding: 12px;
+    border-radius: 6px;
+    border: 1px solid #e0e0e0;
+}
+
+.horario-row:hover {
+    border-color: #3498db;
+    box-shadow: 0 2px 4px rgba(52, 152, 219, 0.1);
+}
+
+.dia-select, .hora-inicio, .hora-fin {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 1em;
+    transition: border-color 0.3s;
+}
+
+.dia-select:focus, .hora-inicio:focus, .hora-fin:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.btn-remove-horario {
+    padding: 8px 15px;
+    background: #e74c3c;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.3s;
+    font-weight: 500;
+}
+
+.btn-remove-horario:hover {
+    background: #c0392b;
+}
+
+#add-horario {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: #3498db;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background 0.3s;
+}
+
+#add-horario:hover {
+    background: #2980b9;
+}
+
+#add-horario span {
+    font-size: 1.2em;
+    font-weight: bold;
+}
+
+.form-text {
+    display: block;
+    margin-top: 5px;
+    color: #666;
+    font-size: 0.9em;
+}
+
+.error-message {
+    color: #e74c3c;
+    font-size: 0.9em;
+    margin-top: 5px;
+    display: block;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const horariosContainer = document.getElementById('horarios-container');
+    const addHorarioBtn = document.getElementById('add-horario');
+    const form = document.getElementById('modificar-form');
+    const toggleActivoBtn = document.getElementById('toggle-activo');
+    const activoCheckbox = document.getElementById('id_activo');
+    const btnCambiarFoto = document.getElementById('btn-cambiar-foto');
+    const fotoUpload = document.getElementById('foto-upload');
+    
+    // Botón cambiar foto - abre el selector de archivos directamente
+    if (btnCambiarFoto && fotoUpload) {
+        const fileInput = fotoUpload.querySelector('input[type="file"]');
+        btnCambiarFoto.addEventListener('click', function() {
+            if (fileInput) {
+                fileInput.click();
+            }
+        });
+        
+        // Mostrar nombre del archivo seleccionado
+        if (fileInput) {
+            fileInput.addEventListener('change', function() {
+                if (this.files && this.files[0]) {
+                    const fileName = this.files[0].name;
+                    btnCambiarFoto.textContent = 'Archivo: ' + fileName;
+                }
+            });
+        }
+    }
+    
+    // Toggle del estado activo/inactivo
+    if (toggleActivoBtn && activoCheckbox) {
+        toggleActivoBtn.addEventListener('click', function() {
+            const isActivo = activoCheckbox.checked;
+            activoCheckbox.checked = !isActivo;
+            
+            if (activoCheckbox.checked) {
+                toggleActivoBtn.classList.remove('btn-danger');
+                toggleActivoBtn.classList.add('btn-success');
+                toggleActivoBtn.querySelector('.estado-icon').textContent = '✓';
+                toggleActivoBtn.querySelector('.estado-texto').textContent = 'Usuario Activo';
+            } else {
+                toggleActivoBtn.classList.remove('btn-success');
+                toggleActivoBtn.classList.add('btn-danger');
+                toggleActivoBtn.querySelector('.estado-icon').textContent = '✗';
+                toggleActivoBtn.querySelector('.estado-texto').textContent = 'Usuario Inactivo';
+            }
+        });
+    }
+    
+    // Leer horarios actuales desde el atributo data
+    let horariosActuales = [];
+    if (horariosContainer) {
+        const horariosData = horariosContainer.getAttribute('data-horarios');
+        if (horariosData && horariosData !== '[]') {
+            try {
+                horariosActuales = JSON.parse(horariosData);
+            } catch (e) {
+                console.error('Error al parsear horarios:', e);
+                horariosActuales = [];
+            }
+        }
+    }
+    
+    // Crear una fila de horario
+    function createHorarioRow(dia, horaInicio, horaFin) {
+        dia = dia || '';
+        horaInicio = horaInicio || '';
+        horaFin = horaFin || '';
+        
+        // Determinar si los campos deben ser requeridos
+        const esAdminEditandoOtro = horariosContainer.dataset.esAdminEditandoOtro === 'true';
+        const requiredAttr = esAdminEditandoOtro ? '' : 'required';
+        
+        const row = document.createElement('div');
+        row.className = 'horario-row';
+        row.innerHTML = `
+            <select class="dia-select" ${requiredAttr}>
+                <option value="">Seleccione día</option>
+                <option value="lunes" ${dia === 'lunes' ? 'selected' : ''}>Lunes</option>
+                <option value="martes" ${dia === 'martes' ? 'selected' : ''}>Martes</option>
+                <option value="miercoles" ${dia === 'miercoles' ? 'selected' : ''}>Miércoles</option>
+                <option value="jueves" ${dia === 'jueves' ? 'selected' : ''}>Jueves</option>
+                <option value="viernes" ${dia === 'viernes' ? 'selected' : ''}>Viernes</option>
+                <option value="sabado" ${dia === 'sabado' ? 'selected' : ''}>Sábado</option>
+                <option value="domingo" ${dia === 'domingo' ? 'selected' : ''}>Domingo</option>
+            </select>
+            <input type="time" class="hora-inicio" value="${horaInicio}" placeholder="Inicio" ${requiredAttr}>
+            <input type="time" class="hora-fin" value="${horaFin}" placeholder="Fin" ${requiredAttr}>
+            <button type="button" class="btn-remove-horario remove-horario">Eliminar</button>
+        `;
+        
+        // Validación de hora fin mayor a hora inicio
+        const inputInicio = row.querySelector('.hora-inicio');
+        const inputFin = row.querySelector('.hora-fin');
+        
+        function validarHoras() {
+            if (inputInicio.value && inputFin.value) {
+                if (inputFin.value <= inputInicio.value) {
+                    inputFin.setCustomValidity('La hora de fin debe ser posterior a la hora de inicio');
+                    inputFin.reportValidity();
+                } else {
+                    inputFin.setCustomValidity('');
+                }
+            }
+        }
+        
+        inputInicio.addEventListener('change', validarHoras);
+        inputFin.addEventListener('change', validarHoras);
+        
+        // Agregar evento al botón eliminar
+        row.querySelector('.remove-horario').addEventListener('click', function() {
+            if (horariosContainer.querySelectorAll('.horario-row').length > 1) {
+                row.remove();
+            } else {
+                alert('Debe haber al menos un horario de disponibilidad');
+            }
+        });
+        
+        return row;
+    }
+    
+    // Cargar horarios existentes
+    if (horariosActuales && horariosActuales.length > 0) {
+        horariosActuales.forEach(horario => {
+            const row = createHorarioRow(horario.dia_semana, horario.hora_inicio, horario.hora_fin);
+            horariosContainer.appendChild(row);
+        });
+    } else if (horariosContainer) {
+        // Agregar al menos una fila vacía
+        horariosContainer.appendChild(createHorarioRow('', '', ''));
+    }
+    
+    // Agregar nuevo horario
+    if (addHorarioBtn) {
+        addHorarioBtn.addEventListener('click', function() {
+            horariosContainer.appendChild(createHorarioRow('', '', ''));
+        });
+    }
+    
+    // Al enviar el formulario, serializar horarios
+    if (form && horariosContainer) {
+        form.addEventListener('submit', function(e) {
+            const horarios = [];
+            const rows = horariosContainer.querySelectorAll('.horario-row');
+            const esAdminEditandoOtro = horariosContainer.dataset.esAdminEditandoOtro === 'true';
+            
+            let valid = true;
+            let errorMessage = '';
+            
+            rows.forEach(row => {
+                const dia = row.querySelector('.dia-select').value;
+                const inicio = row.querySelector('.hora-inicio').value;
+                const fin = row.querySelector('.hora-fin').value;
+                
+                if (dia && inicio && fin) {
+                    // Validar que hora fin sea mayor a hora inicio
+                    if (fin <= inicio) {
+                        valid = false;
+                        errorMessage = 'La hora de fin debe ser posterior a la hora de inicio en todos los horarios';
+                        return;
+                    }
+                    
+                    horarios.push({
+                        dia: dia,
+                        hora_inicio: inicio,
+                        hora_fin: fin
+                    });
+                } else if ((dia || inicio || fin) && !esAdminEditandoOtro) {
+                    // Solo validar campos incompletos si NO es administrador
+                    valid = false;
+                    errorMessage = 'Complete todos los campos de cada horario (día, hora inicio y hora fin)';
+                    return;
+                }
+            });
+            
+            if (!valid) {
+                e.preventDefault();
+                alert(errorMessage);
+                return;
+            }
+            
+            // Solo requerir al menos un horario si NO es administrador editando a otro usuario
+            if (!esAdminEditandoOtro && horarios.length === 0) {
+                e.preventDefault();
+                alert('Debe agregar al menos un horario de disponibilidad');
+                return;
+            }
+            
+            // Guardar en el campo oculto
+            const horarioInput = document.getElementById('{{ form.horarios_json.id_for_label }}');
+            if (horarioInput) {
+                horarioInput.value = JSON.stringify(horarios);
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

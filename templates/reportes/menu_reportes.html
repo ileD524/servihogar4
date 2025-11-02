@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block title %}Menú de Reportes - ServiHogar{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <h1>Generador de Reportes</h1>
+    
+    <div class="grid-reportes">
+        <div class="card-reporte">
+            <h3>Preferencias de Clientes</h3>
+            <p>Analiza el comportamiento y preferencias de los clientes del sistema.</p>
+            <a href="{% url 'reportes:generar_reporte_preferencias_cliente' %}" class="btn btn-primary">Generar Reporte</a>
+        </div>
+        
+        <div class="card-reporte">
+            <h3>🔥 Servicios Populares</h3>
+            <p>Muestra los servicios más solicitados de la plataforma.</p>
+            <a href="{% url 'reportes:generar_reporte_servicios_populares' %}" class="btn btn-primary">Generar Reporte</a>
+        </div>
+        
+        <div class="card-reporte">
+            <h3>Ingresos</h3>
+            <p>Reporte detallado de ingresos del sistema.</p>
+            <a href="{% url 'reportes:generar_reporte_ingresos' %}" class="btn btn-primary">Generar Reporte</a>
+        </div>
+        
+        <div class="card-reporte">
+            <h3>👨‍🔧 Desempeño de Profesionales</h3>
+            <p>Estadísticas y rendimiento de los profesionales.</p>
+            <a href="{% url 'reportes:generar_reporte_profesionales' %}" class="btn btn-primary">Generar Reporte</a>
+        </div>
+    </div>
+    
+    <div class="reportes-generados">
+        <h2>Reportes Generados Recientemente</h2>
+        <a href="{% url 'reportes:listar_reportes' %}" class="btn btn-secondary">Ver Todos los Reportes</a>
+    </div>
+</div>
+
+<style>
+.grid-reportes {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin: 2rem 0;
+}
+
+.card-reporte {
+    background-color: var(--white);
+    padding: 2rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    text-align: center;
+}
+
+.card-reporte h3 {
+    margin-bottom: 1rem;
+    color: var(--primary-color);
+}
+
+.card-reporte p {
+    margin-bottom: 1.5rem;
+    color: var(--gray-text);
+}
+
+.reportes-generados {
+    margin-top: 3rem;
+    text-align: center;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,169 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Gestión de Usuarios - ServiHogar{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/gestion-comun.css' %}">
+<style>
+/* Estilos específicos adicionales para usuarios */
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="buscar-container">
+    <!-- Header con título y botón nuevo -->
+    <div class="page-title-bar">
+        <div class="title-section">
+            <h1>USUARIOS</h1>
+            <span class="subtitle">ServiHogar</span>
+        </div>
+        <a href="{% url 'usuarios:registrar_usuario_admin' %}" class="btn btn-nuevo">Nuevo</a>
+    </div>
+    
+    <!-- Filtros de búsqueda en línea -->
+    <div class="search-controls">
+        <form method="get" class="inline-search-form">
+            <div class="search-filters">
+                <div class="filter-item">
+                    <label>{{ form.nombre.label }}</label>
+                    {{ form.nombre }}
+                </div>
+                
+                <div class="filter-item">
+                    <label>{{ form.apellido.label }}</label>
+                    {{ form.apellido }}
+                </div>
+                
+                <div class="filter-item">
+                    <label>{{ form.rol.label }}</label>
+                    {{ form.rol }}
+                </div>
+                
+                <div class="filter-item">
+                    <label>{{ form.estado.label }}</label>
+                    {{ form.estado }}
+                </div>
+            </div>
+            
+            <div class="search-buttons">
+                <button type="submit" class="btn btn-search">Buscar</button>
+                <a href="{% url 'usuarios:buscar_usuario' %}" class="btn btn-clear">Limpiar</a>
+            </div>
+        </form>
+        
+        <div class="search-input-group">
+            <input type="text" placeholder="Buscar..." class="search-box">
+        </div>
+    </div>
+    
+    <!-- Tabla de resultados -->
+    <div class="resultados-card">
+        <div class="table-controls">
+            <div class="pagination-controls">
+                <label>Mostrar:</label>
+                <select class="show-entries">
+                    <option>10</option>
+                    <option>25</option>
+                    <option>50</option>
+                    <option>100</option>
+                </select>
+                <span>registros</span>
+            </div>
+        </div>
+        
+        {% if usuarios %}
+        <div class="usuarios-table-container">
+            <table class="usuarios-table">
+                <thead>
+                    <tr>
+                        <th>Usuario</th>
+                        <th>Nombre Completo</th>
+                        <th>Email</th>
+                        <th>Rol</th>
+                        <th>Teléfono</th>
+                        <th>Estado</th>
+                        <th>Fecha Registro</th>
+                        <th>Fecha Modificación</th>
+                        <th>Fecha Eliminación</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for usuario in usuarios %}
+                    <tr class="{% if not usuario.activo %}usuario-inactivo{% endif %}">
+                        <td>
+                            <div class="usuario-info">
+                                {% if usuario.foto_perfil %}
+                                    <img src="{{ usuario.foto_perfil.url }}" alt="{{ usuario.username }}" class="usuario-avatar">
+                                {% else %}
+                                    <div class="usuario-avatar-placeholder">{{ usuario.first_name.0 }}{{ usuario.last_name.0 }}</div>
+                                {% endif %}
+                                <strong>@{{ usuario.username }}</strong>
+                            </div>
+                        </td>
+                        <td>{{ usuario.get_full_name }}</td>
+                        <td>{{ usuario.email }}</td>
+                        <td>
+                            {% if usuario.rol == 'administrador' %}
+                            <span class="badge badge-danger">Admin</span>
+                            {% elif usuario.rol == 'profesional' %}
+                            <span class="badge badge-info">Profesional</span>
+                            {% else %}
+                            <span class="badge badge-success">Cliente</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ usuario.telefono|default:"-" }}</td>
+                        <td>
+                            {% if usuario.activo %}
+                            <span class="badge badge-success">✓ Activo</span>
+                            {% else %}
+                            <span class="badge badge-danger">✗ Inactivo</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ usuario.fecha_registro|date:"d/m/Y" }}</td>
+                        <td>{{ usuario.fecha_modificacion|date:"d/m/Y" }}</td>
+                        <td>
+                            {% if usuario.fecha_eliminacion %}
+                                {{ usuario.fecha_eliminacion|date:"d/m/Y" }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="acciones-btns">
+                                <a href="{% url 'usuarios:perfil' usuario.id %}" class="btn btn-sm" title="Ver perfil">Ver</a>
+                                {% if usuario.rol != 'administrador' %}
+                                    <a href="{% url 'usuarios:modificar_usuario' usuario.id %}" class="btn btn-sm btn-primary" title="Editar">Editar</a>
+                                    {% if usuario.activo %}
+                                        <a href="{% url 'usuarios:eliminar_usuario' usuario.id %}" class="btn btn-sm btn-danger" title="Eliminar" onclick="return confirm('¿Eliminar este usuario?')">Eliminar</a>
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="table-footer">
+            <div class="showing-info">
+                Mostrando registros del 1 al {{ usuarios.count }} de un total de {{ usuarios.count }} registros
+            </div>
+            <div class="pagination">
+                <button class="page-btn" disabled>Anterior</button>
+                <button class="page-btn active">1</button>
+                <button class="page-btn" disabled>Siguiente</button>
+            </div>
+        </div>
+        {% else %}
+        <div class="no-resultados">
+            <p>No se encontraron usuarios con los criterios especificados</p>
+            <a href="{% url 'usuarios:buscar_usuario' %}" class="btn btn-secondary">Limpiar filtros</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

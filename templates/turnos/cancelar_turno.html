@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block title %}Cancelar Turno - ServiHogar{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <h1>Cancelar Turno</h1>
+    
+    <div class="confirmacion-box">
+        <p class="warning-text">Atención: ¿Estás seguro de que deseas cancelar este turno?</p>
+        
+        <div class="turno-info">
+            <h3>{{ turno.servicio.nombre }}</h3>
+            <p><strong>Fecha:</strong> {{ turno.fecha_hora|date:"d/m/Y H:i" }}</p>
+            <p><strong>Dirección:</strong> {{ turno.direccion_servicio }}</p>
+            <p><strong>Precio:</strong> ${{ turno.precio_final }}</p>
+        </div>
+        
+        <p class="info-text">Esta acción no se puede deshacer.</p>
+        
+        <form method="post" class="form">
+            {% csrf_token %}
+            <div class="form-actions">
+                <button type="submit" class="btn btn-danger">Sí, Cancelar Turno</button>
+                <a href="{% url 'turnos:ver_turno' turno.id %}" class="btn btn-secondary">No, Volver</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.confirmacion-box {
+    background-color: var(--white);
+    padding: 2rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.warning-text {
+    color: var(--danger-color);
+    font-size: 1.2rem;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.info-text {
+    text-align: center;
+    color: var(--gray-text);
+    margin: 1.5rem 0;
+}
+</style>
+{% endblock %}

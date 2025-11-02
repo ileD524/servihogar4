@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block title %}Modificar Política de Cancelación - ServiHogar{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <h1>Modificar Política de Cancelación</h1>
+    
+    <form method="post" class="form">
+        {% csrf_token %}
+        
+        {% for field in form %}
+            <div class="form-group">
+                <label for="{{ field.id_for_label }}">{{ field.label }}:</label>
+                {{ field }}
+                {% if field.errors %}
+                    <span class="error">{{ field.errors.0 }}</span>
+                {% endif %}
+                {% if field.help_text %}
+                    <small class="help-text">{{ field.help_text }}</small>
+                {% endif %}
+            </div>
+        {% endfor %}
+        
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+            <a href="{% url 'politicas:ver_politica_cancelacion' politica.id %}" class="btn btn-secondary">Cancelar</a>
+        </div>
+    </form>
+</div>
+
+<style>
+.help-text {
+    display: block;
+    color: var(--gray-text);
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard Administrador - ServiHogar{% endblock %}
+
+{% block extra_css %}
+<style>
+.welcome-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 3rem;
+    border-radius: 12px;
+    margin-bottom: 2rem;
+}
+
+.stats-quick {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-box {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.stat-box h3 {
+    color: #7f8c8d;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.stat-box .number {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+.section-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin-bottom: 2rem;
+}
+
+.user-item {
+    padding: 1rem;
+    border-bottom: 1px solid #ecf0f1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.user-item:last-child {
+    border-bottom: none;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="welcome-section">
+    <h1>Bienvenido, Administrador</h1>
+    <p>{{ user.get_full_name }} - Panel de administración ServiHogar</p>
+</div>
+
+<div class="stats-quick">
+    <div class="stat-box">
+        <h3>Total Usuarios</h3>
+        <div class="number">{{ total_usuarios }}</div>
+    </div>
+    <div class="stat-box">
+        <h3>Clientes</h3>
+        <div class="number">{{ total_clientes }}</div>
+    </div>
+    <div class="stat-box">
+        <h3>Profesionales</h3>
+        <div class="number">{{ total_profesionales }}</div>
+    </div>
+    <div class="stat-box">
+        <h3>Servicios</h3>
+        <div class="number">{{ total_servicios }}</div>
+    </div>
+    <div class="stat-box">
+        <h3>Categorías</h3>
+        <div class="number">{{ total_categorias }}</div>
+    </div>
+    <div class="stat-box">
+        <h3>Turnos Hoy</h3>
+        <div class="number">{{ turnos_hoy }}</div>
+    </div>
+    <div class="stat-box">
+        <h3>Promociones Activas</h3>
+        <div class="number">{{ promociones_activas }}</div>
+    </div>
+</div>
+
+{% endblock %}

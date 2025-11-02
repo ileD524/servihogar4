@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block title %}Perfil - ServiHogar{% endblock %}
+
+{% block content %}
+<div class="perfil-container">
+    <div class="perfil-header">
+        {% if usuario.foto_perfil %}
+            <img src="{{ usuario.foto_perfil.url }}" alt="{{ usuario.get_full_name }}" class="perfil-foto">
+        {% else %}
+            <div class="perfil-foto-placeholder">{{ usuario.first_name.0 }}{{ usuario.last_name.0 }}</div>
+        {% endif %}
+        
+        <div class="perfil-info">
+            <h1>{{ usuario.get_full_name }}</h1>
+            <p class="rol-badge">{{ usuario.get_rol_display }}</p>
+            <p>{{ usuario.email }}</p>
+            {% if usuario.telefono %}
+                <p>{{ usuario.telefono }}</p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="perfil-detalles">
+        <h2>Información</h2>
+        
+        {% if usuario.direccion %}
+            <p><strong>Dirección:</strong> {{ usuario.direccion }}</p>
+        {% endif %}
+        
+        <p><strong>Fecha de registro:</strong> {{ usuario.fecha_registro|date:"d/m/Y" }}</p>
+        
+        {% if usuario.is_profesional and perfil %}
+            <h3>Información Profesional</h3>
+            
+            <p><strong>Años de experiencia:</strong> {{ perfil.anios_experiencia }} años</p>
+            <p><strong>Calificación:</strong> {{ calificacion_promedio }}/5.0</p>
+            <p><strong>Estado:</strong> {% if perfil.disponible %}Disponible{% else %}No disponible{% endif %}</p>
+            
+            {% if servicios_ofrecidos %}
+                <div style="margin-top: 20px;">
+                    <h4>Servicios que ofrece:</h4>
+                    <ul style="list-style: none; padding-left: 0;">
+                        {% for servicio in servicios_ofrecidos %}
+                            <li style="padding: 8px; background: #f5f5f5; margin: 5px 0; border-radius: 4px;">
+                                {{ servicio.categoria.nombre }} - {{ servicio.nombre }}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% else %}
+                <p><em>No tiene servicios asignados</em></p>
+            {% endif %}
+        {% endif %}
+        
+        {% if usuario.is_cliente and perfil %}
+            <h3>Información del Cliente</h3>
+            {% if perfil.preferencias %}
+                <p><strong>Preferencias:</strong> {{ perfil.preferencias }}</p>
+            {% endif %}
+        {% endif %}
+    </div>
+    
+    {% if user.id == usuario.id or user.is_administrador %}
+        <div class="perfil-acciones">
+            {% if user.id == usuario.id and not user.is_administrador %}
+                <!-- Usuario ve su propio perfil (cliente o profesional) -->
+                <a href="{% url 'usuarios:modificar_perfil' %}" class="btn btn-primary">Editar Mi Perfil</a>
+                <a href="{% url 'usuarios:eliminar_perfil' %}" class="btn btn-danger" onclick="return confirm('¿Estás seguro de que deseas eliminar tu cuenta? Esta acción marcará tu cuenta como inactiva.')">Dar de Baja Mi Cuenta</a>
+            {% elif user.is_administrador and usuario.id != user.id %}
+                <!-- Administrador ve perfil de otro usuario -->
+                <a href="{% url 'usuarios:modificar_usuario' usuario.id %}" class="btn btn-primary">Editar Usuario</a>
+                {% if not usuario.is_administrador %}
+                    <a href="{% url 'usuarios:eliminar_usuario' usuario.id %}" class="btn btn-danger" onclick="return confirm('¿Estás seguro de que deseas eliminar este usuario? Esta acción marcará la cuenta como inactiva.')">Eliminar Usuario</a>
+                {% endif %}
+                <a href="{% url 'usuarios:buscar_usuario' %}" class="btn btn-secondary">Volver a Gestión</a>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

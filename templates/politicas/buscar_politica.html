@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Buscar Política - ServiHogar{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/gestion-comun.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <h1>Buscar Políticas</h1>
+    
+    <form method="get" class="form-busqueda">
+        <div class="filtros-busqueda">
+            {% for field in form %}
+                <div class="form-group">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}:</label>
+                    {{ field }}
+                </div>
+            {% endfor %}
+            <button type="submit" class="btn btn-primary">Buscar</button>
+        </div>
+    </form>
+    
+    {% if politicas_cancelacion or politicas_reembolso %}
+        <div class="resultados-politicas">
+            {% if politicas_cancelacion %}
+                <section>
+                    <h2>Políticas de Cancelación</h2>
+                    <div class="lista-politicas">
+                        {% for politica in politicas_cancelacion %}
+                            <div class="card-politica">
+                                <h3>{{ politica.titulo }}</h3>
+                                <p>{{ politica.descripcion|truncatewords:30 }}</p>
+                                <div class="politica-info">
+                                    <span class="badge {% if politica.activa %}badge-success{% else %}badge-secondary{% endif %}">
+                                        {% if politica.activa %}Activa{% else %}Inactiva{% endif %}
+                                    </span>
+                                    <p><strong>Anticipación:</strong> {{ politica.horas_anticipacion }} horas</p>
+                                    <p><strong>Penalización:</strong> {{ politica.penalizacion_porcentaje }}%</p>
+                                </div>
+                                <a href="{% url 'politicas:ver_politica_cancelacion' politica.id %}" class="btn btn-info">Ver Detalle</a>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </section>
+            {% endif %}
+            
+            {% if politicas_reembolso %}
+                <section>
+                    <h2>Políticas de Reembolso</h2>
+                    <div class="lista-politicas">
+                        {% for politica in politicas_reembolso %}
+                            <div class="card-politica">
+                                <h3>{{ politica.titulo }}</h3>
+                                <p>{{ politica.descripcion|truncatewords:30 }}</p>
+                                <div class="politica-info">
+                                    <span class="badge {% if politica.activa %}badge-success{% else %}badge-secondary{% endif %}">
+                                        {% if politica.activa %}Activa{% else %}Inactiva{% endif %}
+                                    </span>
+                                    <p><strong>Días para reembolso:</strong> {{ politica.dias_reembolso }} días</p>
+                                    <p><strong>Porcentaje:</strong> {{ politica.porcentaje_reembolso }}%</p>
+                                </div>
+                                <a href="{% url 'politicas:ver_politica_reembolso' politica.id %}" class="btn btn-info">Ver Detalle</a>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </section>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+
+<style>
+.lista-politicas {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin: 1.5rem 0;
+}
+
+.card-politica {
+    background-color: var(--white);
+    padding: 1.5rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+}
+
+.card-politica h3 {
+    margin-bottom: 1rem;
+    color: var(--primary-color);
+}
+
+.politica-info {
+    margin: 1rem 0;
+}
+
+.badge-secondary {
+    background-color: var(--gray-text);
+}
+</style>
+{% endblock %}

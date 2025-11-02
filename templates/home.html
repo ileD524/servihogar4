@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Inicio - ServiHogar{% endblock %}
+
+{% block content %}
+<div class="home-container">
+    <section class="hero">
+        <h1>Bienvenido a ServiHogar</h1>
+        <p class="subtitle">Conectamos clientes con los mejores profesionales de servicios del hogar</p>
+        
+        {% if not user.is_authenticated %}
+            <div class="cta-buttons">
+                <a href="{% url 'usuarios:registrar_usuario' %}" class="btn btn-primary">Registrarse</a>
+                <a href="{% url 'servicios:buscar_servicio' %}" class="btn btn-secondary">Ver Servicios</a>
+            </div>
+        {% endif %}
+    </section>
+
+    {% if user.is_authenticated %}
+        <section class="acciones-rapidas">
+            <h2>Acciones Rápidas</h2>
+            <div class="grid-acciones">
+                {% if user.is_cliente %}
+                    <a href="{% url 'turnos:solicitar_turno' %}" class="card-accion">
+                        <h3>Solicitar Turno</h3>
+                        <p>Reserva un servicio ahora</p>
+                    </a>
+                    <a href="{% url 'turnos:historial_turnos' %}" class="card-accion">
+                        <h3>Mis Turnos</h3>
+                        <p>Ver tu historial</p>
+                    </a>
+                    <a href="{% url 'promociones:promociones_vigentes' %}" class="card-accion">
+                        <h3>Promociones</h3>
+                        <p>Descuentos disponibles</p>
+                    </a>
+                {% elif user.is_profesional %}
+                    <a href="{% url 'turnos:historial_turnos' %}" class="card-accion">
+                        <h3>Mis Turnos</h3>
+                        <p>Gestionar turnos</p>
+                    </a>
+                    <a href="{% url 'servicios:buscar_servicio' %}" class="card-accion">
+                        <h3>Mis Servicios</h3>
+                        <p>Administrar servicios</p>
+                    </a>
+                {% elif user.is_administrador %}
+                    <a href="{% url 'usuarios:listar_usuarios' %}" class="card-accion">
+                        <h3>Usuarios</h3>
+                        <p>Gestionar usuarios</p>
+                    </a>
+                    <a href="{% url 'reportes:menu_reportes' %}" class="card-accion">
+                        <h3>Reportes</h3>
+                        <p>Ver estadísticas</p>
+                    </a>
+                    <a href="{% url 'promociones:listar_promociones' %}" class="card-accion">
+                        <h3>Promociones</h3>
+                        <p>Gestionar promociones</p>
+                    </a>
+                {% endif %}
+            </div>
+        </section>
+    {% endif %}
+</div>
+{% endblock %}

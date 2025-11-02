@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block title %}Confirmar Turno - ServiHogar{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <h1>Confirmar Turno</h1>
+    
+    <div class="turno-info">
+        <h3>{{ turno.servicio.nombre }}</h3>
+        <p><strong>Cliente:</strong> {{ turno.cliente.usuario.get_full_name }}</p>
+        <p><strong>Fecha:</strong> {{ turno.fecha_hora|date:"d/m/Y H:i" }}</p>
+        <p><strong>Dirección:</strong> {{ turno.direccion_servicio }}</p>
+        {% if turno.observaciones %}
+            <p><strong>Observaciones:</strong> {{ turno.observaciones }}</p>
+        {% endif %}
+    </div>
+    
+    <form method="post" class="form">
+        {% csrf_token %}
+        
+        {% for field in form %}
+            <div class="form-group">
+                <label for="{{ field.id_for_label }}">{{ field.label }}:</label>
+                {{ field }}
+                {% if field.errors %}
+                    <span class="error">{{ field.errors.0 }}</span>
+                {% endif %}
+            </div>
+        {% endfor %}
+        
+        <div class="form-actions">
+            <button type="submit" class="btn btn-success">Procesar Turno</button>
+            <a href="{% url 'turnos:ver_turno' turno.id %}" class="btn btn-secondary">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

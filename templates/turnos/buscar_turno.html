@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Buscar Turno - ServiHogar{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/gestion-comun.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <h1>Buscar Turno</h1>
+    
+    <form method="get" class="form-busqueda">
+        <div class="filtros-busqueda">
+            {% for field in form %}
+                <div class="form-group">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}:</label>
+                    {{ field }}
+                </div>
+            {% endfor %}
+            <button type="submit" class="btn btn-primary">Buscar</button>
+        </div>
+    </form>
+    
+    {% if turnos %}
+        <div class="resultados-busqueda">
+            <h2>Resultados ({{ turnos.count }} turnos encontrados)</h2>
+            
+            <div class="lista-turnos">
+                {% for turno in turnos %}
+                    <div class="card-turno estado-{{ turno.estado }}">
+                        <div class="turno-header">
+                            <h3>{{ turno.servicio.nombre }}</h3>
+                            <span class="badge badge-{{ turno.estado }}">{{ turno.get_estado_display }}</span>
+                        </div>
+                        
+                        <div class="turno-info">
+                            <p><strong>Fecha:</strong> {{ turno.fecha_hora|date:"d/m/Y H:i" }}</p>
+                            <p><strong>Dirección:</strong> {{ turno.direccion_servicio }}</p>
+                            <p><strong>Precio:</strong> ${{ turno.precio_final }}</p>
+                        </div>
+                        
+                        <div class="turno-acciones">
+                            <a href="{% url 'turnos:ver_turno' turno.id %}" class="btn btn-small btn-info">Ver Detalle</a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

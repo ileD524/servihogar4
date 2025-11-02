@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block title %}Eliminar Usuario - ServiHogar{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <h1>Eliminar Usuario</h1>
+    
+    <div class="confirmacion-box">
+        <p class="warning-text">¿Estás seguro de que deseas eliminar este usuario?</p>
+        
+        <div class="usuario-info">
+            <h3>{{ usuario.get_full_name }}</h3>
+            <p><strong>Usuario:</strong> {{ usuario.username }}</p>
+            <p><strong>Email:</strong> {{ usuario.email }}</p>
+            <p><strong>Rol:</strong> {{ usuario.get_rol_display }}</p>
+        </div>
+        
+        <p class="info-text">El usuario será desactivado y no podrá acceder al sistema.</p>
+        
+        <form method="post" class="form">
+            {% csrf_token %}
+            <div class="form-actions">
+                <button type="submit" class="btn btn-danger">Sí, Eliminar Usuario</button>
+                <a href="{% url 'usuarios:perfil' usuario.id %}" class="btn btn-secondary">No, Cancelar</a>
+                <a href="{% url 'usuarios:buscar_usuario' %}" class="btn btn-secondary">Volver a Gestión</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.confirmacion-box {
+    background-color: var(--white);
+    padding: 2rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.warning-text {
+    color: var(--danger-color);
+    font-size: 1.2rem;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.usuario-info {
+    background-color: var(--light-bg);
+    padding: 1.5rem;
+    border-radius: var(--border-radius);
+    margin: 1.5rem 0;
+}
+
+.info-text {
+    text-align: center;
+    color: var(--gray-text);
+    margin: 1.5rem 0;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,195 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard Profesional - ServiHogar{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <h1>Dashboard Profesional</h1>
+        <p>Bienvenido, <strong>{{ user.get_full_name }}</strong></p>
+    </div>
+
+    <!-- Acciones rápidas -->
+    <div class="quick-actions">
+        <h2>Acciones Rápidas</h2>
+        <div class="action-buttons">
+            <a href="{% url 'turnos:historial_turnos' %}" class="btn btn-primary">
+                <span>📋</span> Ver Mis Turnos
+            </a>
+            <a href="{% url 'servicios:buscar_servicio' %}" class="btn btn-secondary">
+                <span>Servicios</span> Mis Servicios
+            </a>
+            <a href="{% url 'usuarios:perfil' user.id %}" class="quick-link">
+                <span>Perfil</span> Mi Perfil
+            </a>
+            <a href="{% url 'usuarios:modificar_usuario' user.id %}" class="btn btn-secondary">
+                <span>⚙️</span> Configuración
+            </a>
+        </div>
+    </div>
+
+    <!-- Estadísticas -->
+    <div class="stats-container">
+        <div class="stat-card">
+            <h3>Total de Turnos</h3>
+            <p class="stat-number">{{ total_turnos }}</p>
+        </div>
+        <div class="stat-card">
+            <h3>Turnos Pendientes</h3>
+            <p class="stat-number">{{ turnos_pendientes.count }}</p>
+        </div>
+        <div class="stat-card">
+            <h3>Turnos Completados</h3>
+            <p class="stat-number">{{ turnos_completados }}</p>
+        </div>
+        <div class="stat-card">
+            <h3>Mis Servicios</h3>
+            <p class="stat-number">{{ mis_servicios.count }}</p>
+        </div>
+    </div>
+
+    <!-- Turnos pendientes de confirmación -->
+    {% if turnos_pendientes %}
+    <div class="dashboard-section">
+        <h2>Turnos Pendientes de Confirmación</h2>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Hora</th>
+                    <th>Cliente</th>
+                    <th>Servicio</th>
+                    <th>Dirección</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for turno in turnos_pendientes %}
+                <tr>
+                    <td>{{ turno.fecha|date:"d/m/Y" }}</td>
+                    <td>{{ turno.hora|time:"H:i" }}</td>
+                    <td>{{ turno.cliente.usuario.get_full_name }}</td>
+                    <td>{{ turno.servicio.nombre }}</td>
+                    <td>{{ turno.direccion_servicio|truncatewords:5 }}</td>
+                    <td>
+                        <a href="{% url 'turnos:confirmar_turno' turno.id %}" class="btn btn-sm btn-success">Confirmar</a>
+                        <a href="{% url 'turnos:ver_turno' turno.id %}" class="btn btn-sm">Ver</a>
+                        <a href="{% url 'turnos:cancelar_turno' turno.id %}" class="btn btn-sm btn-danger">Rechazar</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="dashboard-section">
+        <p class="text-muted">No hay turnos pendientes de confirmación.</p>
+    </div>
+    {% endif %}
+
+    <!-- Turnos confirmados próximos -->
+    {% if turnos_confirmados %}
+    <div class="dashboard-section">
+        <h2>Próximos Turnos Confirmados</h2>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Hora</th>
+                    <th>Cliente</th>
+                    <th>Servicio</th>
+                    <th>Precio</th>
+                    <th>Teléfono Cliente</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for turno in turnos_confirmados %}
+                <tr>
+                    <td>{{ turno.fecha|date:"d/m/Y" }}</td>
+                    <td>{{ turno.hora|time:"H:i" }}</td>
+                    <td>{{ turno.cliente.usuario.get_full_name }}</td>
+                    <td>{{ turno.servicio.nombre }}</td>
+                    <td>${{ turno.precio_final }}</td>
+                    <td>{{ turno.cliente.usuario.telefono|default:"No especificado" }}</td>
+                    <td>
+                        <a href="{% url 'turnos:ver_turno' turno.id %}" class="btn btn-sm">Ver Detalles</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    <!-- Historial reciente -->
+    {% if historial_turnos %}
+    <div class="dashboard-section">
+        <h2>Historial Reciente</h2>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Cliente</th>
+                    <th>Servicio</th>
+                    <th>Estado</th>
+                    <th>Calificación</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for turno in historial_turnos %}
+                <tr>
+                    <td>{{ turno.fecha|date:"d/m/Y" }}</td>
+                    <td>{{ turno.cliente.get_full_name }}</td>
+                    <td>{{ turno.servicio.nombre }}</td>
+                    <td>
+                        {% if turno.estado == 'completado' %}
+                        <span class="badge badge-success">Completado</span>
+                        {% else %}
+                        <span class="badge badge-danger">Cancelado</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if turno.calificaciones.exists %}
+                        {% with calif=turno.calificaciones.first %}
+                        {{ calif.puntuacion }}/5
+                        {% endwith %}
+                        {% else %}
+                        -
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{% url 'turnos:ver_turno' turno.id %}" class="btn btn-sm">Ver</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <a href="{% url 'turnos:historial_turnos' %}" class="btn btn-secondary">Ver Historial Completo</a>
+    </div>
+    {% endif %}
+
+    <!-- Mis servicios -->
+    {% if mis_servicios %}
+    <div class="dashboard-section">
+        <h2>Mis Servicios Activos</h2>
+        <div class="services-grid">
+            {% for servicio in mis_servicios %}
+            <div class="service-card">
+                <h3>{{ servicio.nombre }}</h3>
+                <p><strong>Categoría:</strong> {{ servicio.categoria.nombre }}</p>
+                <p>{{ servicio.descripcion|truncatewords:15 }}</p>
+                <p><strong>Precio:</strong> ${{ servicio.precio }}</p>
+                <p><strong>Duración:</strong> {{ servicio.duracion_estimada }} min</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% else %}
+    <div class="dashboard-section">
+        <p class="text-muted">No tienes servicios registrados aún.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block title %}Historial de Turnos - ServiHogar{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <h1>Historial de Turnos</h1>
+    
+    <div class="acciones-listado">
+                <a href="{% url 'turnos:buscar_turno' %}" class="btn btn-secondary">Buscar Turnos</a>
+        {% if user.rol == 'cliente' %}
+            <a href="{% url 'turnos:solicitar_turno' %}" class="btn btn-primary">Nuevo Turno</a>
+    </div>
+    
+    {% if turnos %}
+        <div class="lista-turnos">
+            {% for turno in turnos %}
+                <div class="card-turno estado-{{ turno.estado }}">
+                    <div class="turno-header">
+                        <h3>{{ turno.servicio.nombre }}</h3>
+                        <span class="badge badge-{{ turno.estado }}">{{ turno.get_estado_display }}</span>
+                    </div>
+                    
+                    <div class="turno-info">
+                        <p><strong>Fecha:</strong> {{ turno.fecha_hora|date:"d/m/Y H:i" }}</p>
+                        <p><strong>Dirección:</strong> {{ turno.direccion_servicio }}</p>
+                        <p><strong>Precio:</strong> ${{ turno.precio_final }}</p>
+                        
+                        {% if user.is_cliente %}
+                            <p><strong>Profesional:</strong> {{ turno.profesional.usuario.get_full_name }}</p>
+                        {% elif user.is_profesional %}
+                            <p><strong>Cliente:</strong> {{ turno.cliente.usuario.get_full_name }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="turno-acciones">
+                        <a href="{% url 'turnos:ver_turno' turno.id %}" class="btn btn-small btn-info">Ver Detalle</a>
+                        
+                        {% if turno.estado == 'pendiente' %}
+                            {% if user.is_cliente %}
+                                <a href="{% url 'turnos:modificar_turno' turno.id %}" class="btn btn-small btn-warning">Modificar</a>
+                                <a href="{% url 'turnos:cancelar_turno' turno.id %}" class="btn btn-small btn-danger">Cancelar</a>
+                            {% elif user.is_profesional %}
+                                <a href="{% url 'turnos:confirmar_turno' turno.id %}" class="btn btn-small btn-success">Confirmar</a>
+                            {% endif %}
+                        {% endif %}
+                        
+                        {% if turno.estado == 'completado' and user.is_cliente and not turno.calificacion %}
+                            <a href="{% url 'turnos:calificar_turno' turno.id %}" class="btn btn-small btn-primary">Calificar</a>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <p>No tienes turnos registrados.</p>
+            {% if user.is_cliente %}
+                <a href="{% url 'turnos:solicitar_turno' %}" class="btn btn-primary">Solicitar tu Primer Turno</a>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
