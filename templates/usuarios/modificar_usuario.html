@@ -86,19 +86,21 @@
                 {% endif %}
             </div>
             
-            {% if user.is_administrador and user.id != usuario.id %}
-            <div class="form-group">
-                <label>Estado del usuario:</label>
-                <div class="estado-container">
-                    <button type="button" id="toggle-activo" class="btn {% if usuario.activo %}btn-success{% else %}btn-danger{% endif %}">
-                        <span class="estado-icon">{% if usuario.activo %}✓{% else %}✗{% endif %}</span>
-                        <span class="estado-texto">{% if usuario.activo %}Usuario Activo{% else %}Usuario Inactivo{% endif %}</span>
-                    </button>
-                    <input type="checkbox" name="activo" id="id_activo" {% if usuario.activo %}checked{% endif %} style="display: none;">
+            {% if not usuario.is_administrador %}
+                {% if user.is_administrador and user.id != usuario.id %}
+                <div class="form-group">
+                    <label>Estado del usuario:</label>
+                    <div class="estado-container">
+                        <button type="button" id="toggle-activo" class="btn {% if usuario.activo %}btn-success{% else %}btn-danger{% endif %}">
+                            <span class="estado-icon">{% if usuario.activo %}✓{% else %}✗{% endif %}</span>
+                            <span class="estado-texto">{% if usuario.activo %}Usuario Activo{% else %}Usuario Inactivo{% endif %}</span>
+                        </button>
+                        <input type="checkbox" name="activo" id="id_activo" {% if usuario.activo %}checked{% endif %} style="display: none;">
+                    </div>
                 </div>
-            </div>
-            {% else %}
-            {{ form.activo }}
+                {% else %}
+                {{ form.activo }}
+                {% endif %}
             {% endif %}
         </div>
         
