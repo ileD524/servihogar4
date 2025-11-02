@@ -241,10 +241,10 @@ def modificar_usuario(request, id):
     """Administrador modifica usuario (cliente o profesional)"""
     usuario = get_object_or_404(Usuario, id=id)
     
-    # El admin no puede modificar otros administradores
-    if usuario.is_administrador():
+    # El admin no puede modificar otros administradores (pero sí a sí mismo)
+    if usuario.is_administrador() and usuario.id != request.user.id:
         messages.error(request, 'No puedes modificar otros administradores')
-        return redirect('usuarios:listar_usuarios')
+        return redirect('usuarios:buscar_usuario')
     
     if request.method == 'POST':
         form = ModificarUsuarioForm(request.POST, request.FILES, instance=usuario)
@@ -365,6 +365,25 @@ def eliminar_usuario(request, id):
     return render(request, 'usuarios/eliminar_usuario.html', {'usuario': usuario})
 
 
+# CU-06B: Activar Usuario (solo para ADMINISTRADOR)
+@user_passes_test(es_administrador)
+def activar_usuario(request, id):
+    """Administrador reactiva usuario (cliente o profesional)"""
+    usuario = get_object_or_404(Usuario, id=id)
+    
+    # El admin no puede activar otros administradores
+    if usuario.is_administrador():
+        messages.error(request, 'No puedes activar otros administradores')
+        return redirect('usuarios:buscar_usuario')
+    
+    username = usuario.username
+    usuario.activo = True
+    usuario.fecha_eliminacion = None
+    usuario.save()
+    messages.success(request, f'Usuario {username} activado exitosamente')
+    return redirect('usuarios:buscar_usuario')
+
+
 # CU-04: Registrar Usuario (ADMINISTRADOR registra cliente o profesional)
 @user_passes_test(es_administrador)
 def registrar_usuario_admin(request):
@@ -404,7 +423,7 @@ def registrar_usuario_admin(request):
                         servicio.save()
             
             messages.success(request, f'Usuario {user.username} registrado exitosamente como {user.get_rol_display()}')
-            return redirect('usuarios:listar_usuarios')
+            return redirect('usuarios:buscar_usuario')
     else:
         form = RegistrarUsuarioAdminForm()
     
@@ -450,13 +469,6 @@ def buscar_usuario(request):
     usuarios = usuarios.order_by('-fecha_registro')
     
     return render(request, 'usuarios/buscar_usuario.html', {'form': form, 'usuarios': usuarios})
-
-
-@user_passes_test(es_administrador)
-def listar_usuarios(request):
-    """Lista todos los usuarios activos (solo administrador)"""
-    usuarios = Usuario.objects.filter(activo=True).exclude(rol='administrador').order_by('-fecha_registro')
-    return render(request, 'usuarios/listar_usuarios.html', {'usuarios': usuarios})
 
 
 @login_required
