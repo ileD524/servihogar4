@@ -247,19 +247,27 @@ def modificar_usuario(request, id):
         return redirect('usuarios:buscar_usuario')
     
     if request.method == 'POST':
-        form = ModificarUsuarioForm(request.POST, request.FILES, instance=usuario)
+        form = ModificarUsuarioForm(request.POST, request.FILES, instance=usuario, editor_user=request.user)
         if form.is_valid():
+            # Guardar el estado 'activo' original antes de procesar el formulario
+            estado_activo_original = usuario.activo
+            
             # Guardar datos básicos
             usuario_actualizado = form.save(commit=False)
             
-            # Manejar fecha de eliminación según el estado
-            if usuario_actualizado.activo and usuario.fecha_eliminacion:
-                # Si se reactivó el usuario, limpiar fecha de eliminación
-                usuario_actualizado.fecha_eliminacion = None
-            elif not usuario_actualizado.activo and not usuario.fecha_eliminacion:
-                # Si se desactivó el usuario, registrar fecha de eliminación
-                from django.utils import timezone
-                usuario_actualizado.fecha_eliminacion = timezone.now()
+            # Si el usuario que se está editando es administrador, SIEMPRE mantener su estado activo
+            if usuario.rol == 'administrador':
+                usuario_actualizado.activo = estado_activo_original
+            
+            # Manejar fecha de eliminación según el estado (solo si cambió el estado y NO es administrador)
+            if usuario.rol != 'administrador' and usuario_actualizado.activo != estado_activo_original:
+                if usuario_actualizado.activo and usuario.fecha_eliminacion:
+                    # Si se reactivó el usuario, limpiar fecha de eliminación
+                    usuario_actualizado.fecha_eliminacion = None
+                elif not usuario_actualizado.activo and not usuario.fecha_eliminacion:
+                    # Si se desactivó el usuario, registrar fecha de eliminación
+                    from django.utils import timezone
+                    usuario_actualizado.fecha_eliminacion = timezone.now()
             
             usuario_actualizado.save()
             
@@ -311,7 +319,7 @@ def modificar_usuario(request, id):
             messages.success(request, 'Usuario modificado exitosamente')
             return redirect('usuarios:perfil', id=usuario_actualizado.id)
     else:
-        form = ModificarUsuarioForm(instance=usuario)
+        form = ModificarUsuarioForm(instance=usuario, editor_user=request.user)
     
     # Obtener horarios actuales si es profesional
     horarios_actuales = []

@@ -93,13 +93,21 @@ class ModificarUsuarioForm(forms.ModelForm):
         }
         
     def __init__(self, *args, **kwargs):
+        # Extraer el usuario que está editando (quien hace la petición)
+        self.editor_user = kwargs.pop('editor_user', None)
         super().__init__(*args, **kwargs)
-        # Si el usuario no es administrador, ocultar el campo 'activo'
-        if not kwargs.get('instance') or not hasattr(kwargs.get('instance'), 'is_administrador'):
+        
+        instance = kwargs.get('instance')
+        
+        # Ocultar y desactivar el campo 'activo' si:
+        # 1. El usuario que se está editando es administrador
+        # 2. O si no hay información sobre quién es el editor
+        if instance and instance.rol == 'administrador':
+            # Los administradores no pueden cambiar su propio estado 'activo'
             self.fields['activo'].widget = forms.HiddenInput()
+            self.fields['activo'].required = False
             
         # Si es profesional, precargar servicios actuales y años de experiencia
-        instance = kwargs.get('instance')
         if instance and instance.rol == 'profesional':
             try:
                 # Obtener el perfil de profesional del usuario
