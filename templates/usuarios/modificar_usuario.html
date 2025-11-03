@@ -37,6 +37,16 @@
                 {% endif %}
             </div>
             
+            {% if usuario.rol != 'administrador' %}
+            <div class="form-group">
+                <label for="{{ form.rol.id_for_label }}">{{ form.rol.label }}:</label>
+                {{ form.rol }}
+                {% if form.rol.errors %}
+                    <span class="error">{{ form.rol.errors.0 }}</span>
+                {% endif %}
+            </div>
+            {% endif %}
+            
             <div class="form-group">
                 <label for="{{ form.telefono.id_for_label }}">{{ form.telefono.label }}:</label>
                 {{ form.telefono }}
@@ -86,8 +96,7 @@
                 {% endif %}
             </div>
             
-            {% if not usuario.is_administrador %}
-                {% if user.is_administrador and user.id != usuario.id %}
+            {% if usuario.rol != 'administrador' %}
                 <div class="form-group">
                     <label>Estado del usuario:</label>
                     <div class="estado-container">
@@ -98,15 +107,11 @@
                         <input type="checkbox" name="activo" id="id_activo" {% if usuario.activo %}checked{% endif %} style="display: none;">
                     </div>
                 </div>
-                {% else %}
-                {{ form.activo }}
-                {% endif %}
             {% endif %}
         </div>
         
-        <!-- Sección de profesional -->
-        {% if usuario.rol == 'profesional' %}
-        <div class="form-section" id="profesional-section">
+        <!-- Sección de profesional - Mostrar/ocultar según rol seleccionado -->
+        <div class="form-section" id="profesional-section" style="display: {% if usuario.rol == 'profesional' %}block{% else %}none{% endif %};">
             <h3>Configuración de Profesional</h3>
             
             <!-- Años de experiencia -->
@@ -144,11 +149,10 @@
                 <label class="section-label">
                     Horarios de Disponibilidad
                     {% if user.is_administrador and user.id != usuario.id %}
-                        <span style="color: #666; font-weight: normal; font-size: 0.9em;">(Opcional)</span>
                     {% endif %}
                 </label>
                 <div id="horarios-container"
-                     data-horarios="{{ horarios_actuales|escapejs }}"
+                     data-horarios='{{ horarios_actuales|safe }}'
                      data-es-admin-editando-otro="{% if user.is_administrador and user.id != usuario.id %}true{% else %}false{% endif %}">
                     <!-- Se llenarán dinámicamente con JavaScript -->
                 </div>
@@ -159,7 +163,6 @@
             
             {{ form.horarios_json }}
         </div>
-        {% endif %}
         
         <div class="form-actions">
             <button type="submit" class="btn btn-primary">Guardar Cambios</button>
@@ -559,6 +562,22 @@ document.addEventListener('DOMContentLoaded', function() {
     const activoCheckbox = document.getElementById('id_activo');
     const btnCambiarFoto = document.getElementById('btn-cambiar-foto');
     const fotoUpload = document.getElementById('foto-upload');
+    const rolSelect = document.getElementById('id_rol');
+    const profesionalSection = document.getElementById('profesional-section');
+    
+    // Mostrar/ocultar sección de profesional según el rol seleccionado
+    if (rolSelect && profesionalSection) {
+        function toggleProfesionalSection() {
+            if (rolSelect.value === 'profesional') {
+                profesionalSection.style.display = 'block';
+            } else {
+                profesionalSection.style.display = 'none';
+            }
+        }
+        
+        rolSelect.addEventListener('change', toggleProfesionalSection);
+        toggleProfesionalSection(); // Ejecutar al cargar
+    }
     
     // Botón cambiar foto - abre el selector de archivos directamente
     if (btnCambiarFoto && fotoUpload) {
@@ -674,12 +693,14 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Cargar horarios existentes
     if (horariosActuales && horariosActuales.length > 0) {
+        console.log('Cargando horarios existentes:', horariosActuales);
         horariosActuales.forEach(horario => {
-            const row = createHorarioRow(horario.dia_semana, horario.hora_inicio, horario.hora_fin);
+            const row = createHorarioRow(horario.dia, horario.hora_inicio, horario.hora_fin);
             horariosContainer.appendChild(row);
         });
     } else if (horariosContainer) {
         // Agregar al menos una fila vacía
+        console.log('No hay horarios, agregando fila vacía');
         horariosContainer.appendChild(createHorarioRow('', '', ''));
     }
     
@@ -697,6 +718,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const rows = horariosContainer.querySelectorAll('.horario-row');
             const esAdminEditandoOtro = horariosContainer.dataset.esAdminEditandoOtro === 'true';
             
+            console.log('Submit detectado, rows encontradas:', rows.length);
+            
             let valid = true;
             let errorMessage = '';
             
@@ -704,6 +727,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 const dia = row.querySelector('.dia-select').value;
                 const inicio = row.querySelector('.hora-inicio').value;
                 const fin = row.querySelector('.hora-fin').value;
+                
+                console.log('Horario:', {dia, inicio, fin});
                 
                 if (dia && inicio && fin) {
                     // Validar que hora fin sea mayor a hora inicio
@@ -726,6 +751,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
             
+            console.log('Horarios recolectados:', horarios);
+            
             if (!valid) {
                 e.preventDefault();
                 alert(errorMessage);
@@ -739,10 +766,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
-            // Guardar en el campo oculto
-            const horarioInput = document.getElementById('{{ form.horarios_json.id_for_label }}');
+            // Guardar en el campo oculto - usar el ID del input, no del label
+            const horarioInput = document.getElementById('id_horarios_json');
             if (horarioInput) {
                 horarioInput.value = JSON.stringify(horarios);
+                console.log('Horarios guardados:', horarioInput.value);
+            } else {
+                console.error('No se encontró el campo horarios_json');
             }
         });
     }

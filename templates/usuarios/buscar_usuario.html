@@ -68,10 +68,6 @@
                 <a href="{% url 'usuarios:buscar_usuario' %}" class="btn btn-clear">Limpiar</a>
             </div>
         </form>
-        
-        <div class="search-input-group">
-            <input type="text" placeholder="Buscar..." class="search-box">
-        </div>
     </div>
     
     <!-- Tabla de resultados -->
@@ -95,7 +91,7 @@
                 <thead>
                     <tr>
                         <th>
-                            <a href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}orden=id&dir={% if orden_actual == 'id' and dir_actual == 'asc' %}desc{% else %}asc{% endif %}" class="sort-link">
+                            <a href="?orden=id&dir={% if orden_actual == 'id' and dir_actual == 'asc' %}desc{% else %}asc{% endif %}{% if request.GET.nombre %}&nombre={{ request.GET.nombre }}{% endif %}{% if request.GET.apellido %}&apellido={{ request.GET.apellido }}{% endif %}{% if request.GET.rol %}&rol={{ request.GET.rol }}{% endif %}{% if request.GET.estado %}&estado={{ request.GET.estado }}{% endif %}" class="sort-link">
                                 ID
                                 {% if orden_actual == 'id' %}
                                     <span class="sort-arrow">{% if dir_actual == 'asc' %}▲{% else %}▼{% endif %}</span>
@@ -103,7 +99,7 @@
                             </a>
                         </th>
                         <th>
-                            <a href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}orden=username&dir={% if orden_actual == 'username' and dir_actual == 'asc' %}desc{% else %}asc{% endif %}" class="sort-link">
+                            <a href="?orden=username&dir={% if orden_actual == 'username' and dir_actual == 'asc' %}desc{% else %}asc{% endif %}{% if request.GET.nombre %}&nombre={{ request.GET.nombre }}{% endif %}{% if request.GET.apellido %}&apellido={{ request.GET.apellido }}{% endif %}{% if request.GET.rol %}&rol={{ request.GET.rol }}{% endif %}{% if request.GET.estado %}&estado={{ request.GET.estado }}{% endif %}" class="sort-link">
                                 Usuario
                                 {% if orden_actual == 'username' %}
                                     <span class="sort-arrow">{% if dir_actual == 'asc' %}▲{% else %}▼{% endif %}</span>
@@ -111,7 +107,7 @@
                             </a>
                         </th>
                         <th>
-                            <a href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}orden=first_name&dir={% if orden_actual == 'first_name' and dir_actual == 'asc' %}desc{% else %}asc{% endif %}" class="sort-link">
+                            <a href="?orden=first_name&dir={% if orden_actual == 'first_name' and dir_actual == 'asc' %}desc{% else %}asc{% endif %}{% if request.GET.nombre %}&nombre={{ request.GET.nombre }}{% endif %}{% if request.GET.apellido %}&apellido={{ request.GET.apellido }}{% endif %}{% if request.GET.rol %}&rol={{ request.GET.rol }}{% endif %}{% if request.GET.estado %}&estado={{ request.GET.estado }}{% endif %}" class="sort-link">
                                 Nombre Completo
                                 {% if orden_actual == 'first_name' %}
                                     <span class="sort-arrow">{% if dir_actual == 'asc' %}▲{% else %}▼{% endif %}</span>
@@ -123,7 +119,7 @@
                         <th>Teléfono</th>
                         <th>Estado</th>
                         <th>
-                            <a href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}orden=fecha_registro&dir={% if orden_actual == 'fecha_registro' and dir_actual == 'asc' %}desc{% else %}asc{% endif %}" class="sort-link">
+                            <a href="?orden=fecha_registro&dir={% if orden_actual == 'fecha_registro' and dir_actual == 'asc' %}desc{% else %}asc{% endif %}{% if request.GET.nombre %}&nombre={{ request.GET.nombre }}{% endif %}{% if request.GET.apellido %}&apellido={{ request.GET.apellido }}{% endif %}{% if request.GET.rol %}&rol={{ request.GET.rol }}{% endif %}{% if request.GET.estado %}&estado={{ request.GET.estado }}{% endif %}" class="sort-link">
                                 Fecha Registro
                                 {% if orden_actual == 'fecha_registro' %}
                                     <span class="sort-arrow">{% if dir_actual == 'asc' %}▲{% else %}▼{% endif %}</span>
@@ -131,7 +127,7 @@
                             </a>
                         </th>
                         <th>
-                            <a href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}orden=fecha_modificacion&dir={% if orden_actual == 'fecha_modificacion' and dir_actual == 'asc' %}desc{% else %}asc{% endif %}" class="sort-link">
+                            <a href="?orden=fecha_modificacion&dir={% if orden_actual == 'fecha_modificacion' and dir_actual == 'asc' %}desc{% else %}asc{% endif %}{% if request.GET.nombre %}&nombre={{ request.GET.nombre }}{% endif %}{% if request.GET.apellido %}&apellido={{ request.GET.apellido }}{% endif %}{% if request.GET.rol %}&rol={{ request.GET.rol }}{% endif %}{% if request.GET.estado %}&estado={{ request.GET.estado }}{% endif %}" class="sort-link">
                                 Fecha Modificación
                                 {% if orden_actual == 'fecha_modificacion' %}
                                     <span class="sort-arrow">{% if dir_actual == 'asc' %}▲{% else %}▼{% endif %}</span>
@@ -139,7 +135,7 @@
                             </a>
                         </th>
                         <th>
-                            <a href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}orden=fecha_eliminacion&dir={% if orden_actual == 'fecha_eliminacion' and dir_actual == 'asc' %}desc{% else %}asc{% endif %}" class="sort-link">
+                            <a href="?orden=fecha_eliminacion&dir={% if orden_actual == 'fecha_eliminacion' and dir_actual == 'asc' %}desc{% else %}asc{% endif %}{% if request.GET.nombre %}&nombre={{ request.GET.nombre }}{% endif %}{% if request.GET.apellido %}&apellido={{ request.GET.apellido }}{% endif %}{% if request.GET.rol %}&rol={{ request.GET.rol }}{% endif %}{% if request.GET.estado %}&estado={{ request.GET.estado }}{% endif %}" class="sort-link">
                                 Fecha Eliminación
                                 {% if orden_actual == 'fecha_eliminacion' %}
                                     <span class="sort-arrow">{% if dir_actual == 'asc' %}▲{% else %}▼{% endif %}</span>
@@ -198,6 +194,8 @@
                                     <a href="{% url 'usuarios:modificar_usuario' usuario.id %}" class="btn btn-sm btn-primary" title="Editar">Editar</a>
                                     {% if usuario.activo %}
                                         <a href="{% url 'usuarios:eliminar_usuario' usuario.id %}" class="btn btn-sm btn-danger" title="Eliminar">Eliminar</a>
+                                    {% else %}
+                                        <a href="{% url 'usuarios:activar_usuario' usuario.id %}" class="btn btn-sm btn-success" title="Activar">Activar</a>
                                     {% endif %}
                                 {% endif %}
                             </div>

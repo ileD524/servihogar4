@@ -176,15 +176,90 @@ def modificar_perfil(request):
         return redirect('usuarios:dashboard_admin')
     
     if request.method == 'POST':
-        form = ModificarUsuarioForm(request.POST, request.FILES, instance=usuario)
+        # Pasar editor_user=None para indicar que el usuario se está editando a sí mismo
+        # Esto ocultará los campos de administrador (rol, activo)
+        form = ModificarUsuarioForm(request.POST, request.FILES, instance=usuario, editor_user=None)
         if form.is_valid():
-            form.save()
+            # Guardar datos básicos
+            usuario_actualizado = form.save(commit=False)
+            usuario_actualizado.save()
+            
+            # Si es profesional, actualizar servicios y horarios
+            if usuario_actualizado.rol == 'profesional':
+                import json
+                from apps.usuarios.models import HorarioDisponibilidad
+                from apps.servicios.models import Servicio
+                
+                # Obtener el perfil profesional
+                profesional = usuario_actualizado.perfil_profesional
+                
+                # Actualizar años de experiencia
+                anios_exp = form.cleaned_data.get('anios_experiencia', 0)
+                if anios_exp is not None:
+                    profesional.anios_experiencia = anios_exp
+                    profesional.save()
+                
+                # Actualizar servicios
+                servicios_seleccionados = form.cleaned_data.get('servicios', [])
+                
+                # Primero, desasignar todos los servicios actuales de este profesional
+                Servicio.objects.filter(profesional=profesional).update(profesional=None)
+                
+                # Luego, asignar los nuevos servicios seleccionados
+                for servicio in servicios_seleccionados:
+                    servicio.profesional = profesional
+                    servicio.save()
+                
+                # Actualizar horarios
+                horarios_json = request.POST.get('horarios_json', '[]')
+                try:
+                    horarios_data = json.loads(horarios_json)
+                    
+                    # Eliminar horarios existentes
+                    HorarioDisponibilidad.objects.filter(profesional=profesional).delete()
+                    
+                    # Crear nuevos horarios
+                    for horario in horarios_data:
+                        HorarioDisponibilidad.objects.create(
+                            profesional=profesional,
+                            dia_semana=horario['dia'],
+                            hora_inicio=horario['hora_inicio'],
+                            hora_fin=horario['hora_fin']
+                        )
+                except (json.JSONDecodeError, KeyError) as e:
+                    messages.warning(request, 'Error al actualizar horarios.')
+            
             messages.success(request, 'Perfil modificado exitosamente')
             return redirect('usuarios:perfil', id=usuario.id)
     else:
-        form = ModificarUsuarioForm(instance=usuario)
+        # Pasar editor_user=None para ocultar campos de administrador
+        form = ModificarUsuarioForm(instance=usuario, editor_user=None)
     
-    return render(request, 'usuarios/modificar_usuario.html', {'form': form, 'usuario': usuario})
+    # Obtener horarios actuales si tiene perfil profesional
+    horarios_actuales = []
+    try:
+        import json
+        # Intentar obtener el perfil profesional
+        if hasattr(usuario, 'perfil_profesional'):
+            horarios_obj = usuario.perfil_profesional.horarios.all()
+            horarios_actuales = [
+                {
+                    'dia': h.dia_semana,  # Usar 'dia' para consistencia con el JavaScript
+                    'hora_inicio': h.hora_inicio.strftime('%H:%M'),
+                    'hora_fin': h.hora_fin.strftime('%H:%M')
+                }
+                for h in horarios_obj
+            ]
+        horarios_actuales = json.dumps(horarios_actuales)
+    except Exception as e:
+        print(f"Error cargando horarios: {e}")
+        horarios_actuales = '[]'
+    
+    return render(request, 'usuarios/modificar_usuario.html', {
+        'form': form, 
+        'usuario': usuario,
+        'horarios_actuales': horarios_actuales
+    })
 
 
 # CU-02: Eliminar Perfil (usuario da de baja su propia cuenta)
@@ -249,18 +324,20 @@ def modificar_usuario(request, id):
     if request.method == 'POST':
         form = ModificarUsuarioForm(request.POST, request.FILES, instance=usuario, editor_user=request.user)
         if form.is_valid():
-            # Guardar el estado 'activo' original antes de procesar el formulario
+            # Guardar el estado 'activo' original y rol original
             estado_activo_original = usuario.activo
+            rol_original = usuario.rol
             
             # Guardar datos básicos
             usuario_actualizado = form.save(commit=False)
             
-            # Si el usuario que se está editando es administrador, SIEMPRE mantener su estado activo
-            if usuario.rol == 'administrador':
+            # Si el usuario que se está editando es administrador, SIEMPRE mantener su estado activo y rol
+            if rol_original == 'administrador':
                 usuario_actualizado.activo = estado_activo_original
+                usuario_actualizado.rol = rol_original
             
             # Manejar fecha de eliminación según el estado (solo si cambió el estado y NO es administrador)
-            if usuario.rol != 'administrador' and usuario_actualizado.activo != estado_activo_original:
+            if rol_original != 'administrador' and usuario_actualizado.activo != estado_activo_original:
                 if usuario_actualizado.activo and usuario.fecha_eliminacion:
                     # Si se reactivó el usuario, limpiar fecha de eliminación
                     usuario_actualizado.fecha_eliminacion = None
@@ -268,6 +345,23 @@ def modificar_usuario(request, id):
                     # Si se desactivó el usuario, registrar fecha de eliminación
                     from django.utils import timezone
                     usuario_actualizado.fecha_eliminacion = timezone.now()
+            
+            # Manejar cambio de rol (solo para usuarios no administradores)
+            # NO eliminamos los perfiles, solo nos aseguramos de que existan
+            if rol_original != 'administrador':
+                from apps.usuarios.models import Cliente, Profesional
+                
+                # Crear perfiles si no existen
+                if usuario_actualizado.rol == 'cliente':
+                    Cliente.objects.get_or_create(usuario=usuario_actualizado)
+                elif usuario_actualizado.rol == 'profesional':
+                    profesional, created = Profesional.objects.get_or_create(
+                        usuario=usuario_actualizado,
+                        defaults={'anios_experiencia': form.cleaned_data.get('anios_experiencia', 0)}
+                    )
+                    if not created and form.cleaned_data.get('anios_experiencia') is not None:
+                        profesional.anios_experiencia = form.cleaned_data.get('anios_experiencia', 0)
+                        profesional.save()
             
             usuario_actualizado.save()
             
@@ -282,8 +376,9 @@ def modificar_usuario(request, id):
                 
                 # Actualizar años de experiencia
                 anios_exp = form.cleaned_data.get('anios_experiencia', 0)
-                profesional.anios_experiencia = anios_exp
-                profesional.save()
+                if anios_exp is not None:
+                    profesional.anios_experiencia = anios_exp
+                    profesional.save()
                 
                 # Actualizar servicios
                 servicios_seleccionados = form.cleaned_data.get('servicios', [])
@@ -321,24 +416,24 @@ def modificar_usuario(request, id):
     else:
         form = ModificarUsuarioForm(instance=usuario, editor_user=request.user)
     
-    # Obtener horarios actuales si es profesional
+    # Obtener horarios actuales si tiene perfil profesional (aunque el rol actual sea cliente)
     horarios_actuales = []
-    if usuario.rol == 'profesional':
-        try:
-            import json
+    try:
+        import json
+        # Intentar obtener el perfil profesional aunque el rol actual sea cliente
+        if hasattr(usuario, 'perfil_profesional'):
             horarios_obj = usuario.perfil_profesional.horarios.all()
             horarios_actuales = [
                 {
-                    'dia_semana': h.dia_semana,
+                    'dia': h.dia_semana,  # Usar 'dia' para consistencia con el JavaScript
                     'hora_inicio': h.hora_inicio.strftime('%H:%M'),
                     'hora_fin': h.hora_fin.strftime('%H:%M')
                 }
                 for h in horarios_obj
             ]
-            horarios_actuales = json.dumps(horarios_actuales)
-        except:
-            horarios_actuales = '[]'
-    else:
+        horarios_actuales = json.dumps(horarios_actuales)
+    except Exception as e:
+        print(f"Error cargando horarios: {e}")
         horarios_actuales = '[]'
     
     return render(request, 'usuarios/modificar_usuario.html', {
@@ -474,9 +569,30 @@ def buscar_usuario(request):
             elif form.cleaned_data['estado'] == 'inactivo':
                 usuarios = usuarios.filter(activo=False)
     
-    usuarios = usuarios.order_by('-fecha_registro')
+    # Ordenamiento
+    orden = request.GET.get('orden', 'fecha_registro')
+    direccion = request.GET.get('dir', 'desc')
     
-    return render(request, 'usuarios/buscar_usuario.html', {'form': form, 'usuarios': usuarios})
+    # Validar que el campo de ordenamiento sea seguro
+    campos_validos = ['id', 'username', 'first_name', 'last_name', 'email', 'rol', 
+                      'fecha_registro', 'fecha_modificacion', 'fecha_eliminacion', 'activo']
+    
+    if orden in campos_validos:
+        if direccion == 'desc':
+            usuarios = usuarios.order_by(f'-{orden}')
+        else:
+            usuarios = usuarios.order_by(orden)
+    else:
+        usuarios = usuarios.order_by('-fecha_registro')
+    
+    context = {
+        'form': form,
+        'usuarios': usuarios,
+        'orden_actual': orden,
+        'dir_actual': direccion
+    }
+    
+    return render(request, 'usuarios/buscar_usuario.html', context)
 
 
 @login_required

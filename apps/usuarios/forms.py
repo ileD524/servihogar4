@@ -66,6 +66,19 @@ class RegistroUsuarioForm(UserCreationForm):
 class ModificarUsuarioForm(forms.ModelForm):
     """Formulario de modificación de usuarios (CU-03 y CU-05)"""
     
+    # Choices para rol (solo cliente y profesional, no administrador)
+    ROL_CHOICES = (
+        ('cliente', 'Cliente'),
+        ('profesional', 'Profesional'),
+    )
+    
+    rol = forms.ChoiceField(
+        choices=ROL_CHOICES,
+        required=True,
+        label='Rol',
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    
     # Campos adicionales para profesionales
     servicios = forms.ModelMultipleChoiceField(
         queryset=Servicio.objects.filter(activo=True, categoria__activa=True),
@@ -87,7 +100,7 @@ class ModificarUsuarioForm(forms.ModelForm):
     
     class Meta:
         model = Usuario
-        fields = ['first_name', 'last_name', 'email', 'telefono', 'direccion', 'foto_perfil', 'activo']
+        fields = ['first_name', 'last_name', 'email', 'telefono', 'direccion', 'foto_perfil', 'rol', 'activo']
         widgets = {
             'direccion': forms.Textarea(attrs={'rows': 3}),
         }
@@ -99,24 +112,34 @@ class ModificarUsuarioForm(forms.ModelForm):
         
         instance = kwargs.get('instance')
         
-        # Ocultar y desactivar el campo 'activo' si:
-        # 1. El usuario que se está editando es administrador
-        # 2. O si no hay información sobre quién es el editor
-        if instance and instance.rol == 'administrador':
-            # Los administradores no pueden cambiar su propio estado 'activo'
-            self.fields['activo'].widget = forms.HiddenInput()
-            self.fields['activo'].required = False
+        # Si editor_user es None, significa que el usuario se está editando a sí mismo
+        # En ese caso, ocultar campos de administrador (rol, activo)
+        if self.editor_user is None:
+            if 'activo' in self.fields:
+                del self.fields['activo']
+            if 'rol' in self.fields:
+                del self.fields['rol']
+        
+        # Eliminar completamente campos sensibles si el usuario que se está editando es administrador
+        elif instance and instance.rol == 'administrador':
+            # Los administradores no pueden cambiar su estado 'activo' ni su rol
+            if 'activo' in self.fields:
+                del self.fields['activo']
+            if 'rol' in self.fields:
+                del self.fields['rol']
             
-        # Si es profesional, precargar servicios actuales y años de experiencia
-        if instance and instance.rol == 'profesional':
+        # Precargar servicios y años de experiencia si tiene perfil profesional
+        # (aunque el rol actual sea cliente, para mantener los datos)
+        if instance:
             try:
-                # Obtener el perfil de profesional del usuario
-                profesional = instance.perfil_profesional
-                # Filtrar servicios donde el profesional es este perfil
-                servicios_actuales = Servicio.objects.filter(profesional=profesional)
-                self.fields['servicios'].initial = [s.id for s in servicios_actuales]
-                # Precargar años de experiencia
-                self.fields['anios_experiencia'].initial = profesional.anios_experiencia
+                # Intentar obtener el perfil profesional aunque el rol sea cliente
+                if hasattr(instance, 'perfil_profesional'):
+                    profesional = instance.perfil_profesional
+                    # Filtrar servicios donde el profesional es este perfil
+                    servicios_actuales = Servicio.objects.filter(profesional=profesional)
+                    self.fields['servicios'].initial = [s.id for s in servicios_actuales]
+                    # Precargar años de experiencia
+                    self.fields['anios_experiencia'].initial = profesional.anios_experiencia
             except:
                 # Si no tiene perfil profesional, no precargar nada
                 pass
