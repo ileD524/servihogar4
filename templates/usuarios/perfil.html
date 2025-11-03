@@ -28,7 +28,7 @@
             <p><strong>Dirección:</strong> {{ usuario.direccion }}</p>
         {% endif %}
         
-        <p><strong>Fecha de registro:</strong> {{ usuario.fecha_registro|date:"d/m/Y" }}</p>
+        <p><strong>Fecha de registro:</strong> {{ usuario.fecha_registro|date:"d/m/Y H:i" }}</p>
         
         {% if usuario.is_profesional and perfil %}
             <h3>Información Profesional</h3>

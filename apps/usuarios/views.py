@@ -64,23 +64,31 @@ def registrar_usuario(request):
 def iniciar_sesion(request):
     """Inicio de sesión convencional"""
     if request.method == 'POST':
-        form = LoginForm(request, data=request.POST)
+        form = LoginForm(data=request.POST)
         if form.is_valid():
-            username = form.cleaned_data.get('username')
+            email = form.cleaned_data.get('email')
             password = form.cleaned_data.get('password')
-            user = authenticate(username=username, password=password)
-            if user is not None:
-                login(request, user)
-                messages.success(request, f'Bienvenido {user.get_full_name()}')
-                # Redirigir según el rol
-                if user.rol == 'administrador':
-                    return redirect('usuarios:dashboard_admin')
-                elif user.rol == 'profesional':
-                    return redirect('usuarios:dashboard_profesional')
-                else:  # cliente
-                    return redirect('usuarios:dashboard_cliente')
-            else:
-                messages.error(request, 'Usuario o contraseña incorrectos')
+            
+            # Buscar usuario por email
+            try:
+                usuario = Usuario.objects.get(email=email)
+                # Autenticar con el username del usuario encontrado
+                user = authenticate(request, username=usuario.username, password=password)
+                
+                if user is not None:
+                    login(request, user)
+                    messages.success(request, f'Bienvenido {user.get_full_name()}')
+                    # Redirigir según el rol
+                    if user.rol == 'administrador':
+                        return redirect('usuarios:dashboard_admin')
+                    elif user.rol == 'profesional':
+                        return redirect('usuarios:dashboard_profesional')
+                    else:  # cliente
+                        return redirect('usuarios:dashboard_cliente')
+                else:
+                    messages.error(request, 'Correo electrónico o contraseña incorrectos')
+            except Usuario.DoesNotExist:
+                messages.error(request, 'Correo electrónico o contraseña incorrectos')
     else:
         form = LoginForm()
     return render(request, 'usuarios/login.html', {'form': form})

@@ -238,11 +238,11 @@ class BuscarUsuarioForm(forms.Form):
     estado = forms.ChoiceField(choices=ESTADO_CHOICES, required=False, label='Estado')
 
 
-class LoginForm(AuthenticationForm):
+class LoginForm(forms.Form):
     """Formulario de inicio de sesión (CU-07)"""
-    username = forms.CharField(
-        widget=forms.TextInput(attrs={'placeholder': 'Usuario'}),
-        label='Usuario'
+    email = forms.EmailField(
+        widget=forms.EmailInput(attrs={'placeholder': 'correo@ejemplo.com'}),
+        label='Correo electrónico'
     )
     password = forms.CharField(
         widget=forms.PasswordInput(attrs={'placeholder': 'Contraseña'}),

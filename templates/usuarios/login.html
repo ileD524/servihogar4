@@ -11,10 +11,10 @@
             {% csrf_token %}
             
             <div class="form-group">
-                <label for="{{ form.username.id_for_label }}">Usuario:</label>
-                {{ form.username }}
-                {% if form.username.errors %}
-                    <span class="error">{{ form.username.errors.0 }}</span>
+                <label for="{{ form.email.id_for_label }}">Correo electrónico:</label>
+                {{ form.email }}
+                {% if form.email.errors %}
+                    <span class="error">{{ form.email.errors.0 }}</span>
                 {% endif %}
             </div>
             

@@ -178,11 +178,11 @@
                             <span class="badge badge-danger">✗ Inactivo</span>
                             {% endif %}
                         </td>
-                        <td>{{ usuario.fecha_registro|date:"d/m/Y" }}</td>
-                        <td>{{ usuario.fecha_modificacion|date:"d/m/Y" }}</td>
+                        <td>{{ usuario.fecha_registro|date:"d/m/Y H:i" }}</td>
+                        <td>{{ usuario.fecha_modificacion|date:"d/m/Y H:i" }}</td>
                         <td>
                             {% if usuario.fecha_eliminacion %}
-                                {{ usuario.fecha_eliminacion|date:"d/m/Y" }}
+                                {{ usuario.fecha_eliminacion|date:"d/m/Y H:i" }}
                             {% else %}
                                 -
                             {% endif %}
