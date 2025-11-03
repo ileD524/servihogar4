@@ -9,6 +9,7 @@ urlpatterns = [
     path('registrar/', views.registrar_servicio, name='registrar_servicio'),  # CU-13
     path('modificar/<int:id>/', views.modificar_servicio, name='modificar_servicio'),  # CU-15
     path('eliminar/<int:id>/', views.eliminar_servicio, name='eliminar_servicio'),  # CU-14
+    path('activar/<int:id>/', views.activar_servicio, name='activar_servicio'),  # Activar servicio
     
     # Gestión de Categorías
     path('categorias/', views.buscar_categoria, name='buscar_categoria'),  # CU-40

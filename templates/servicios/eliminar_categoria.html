@@ -10,7 +10,7 @@
         <p class="warning-text">¿Está seguro de que desea eliminar esta categoría?</p>
         
         <div class="info-box">
-            <h3>{{ categoria.icono|default:"📁" }} {{ categoria.nombre }}</h3>
+            <h3>{{ categoria.nombre }}</h3>
             <p><strong>Descripción:</strong> {{ categoria.descripcion }}</p>
             <p><strong>Estado actual:</strong>
                 {% if categoria.activa %}
@@ -103,9 +103,13 @@
     border-left: 4px solid #ffc107;
 }
 
-.alert strong {
+.alert > strong {
     display: block;
     margin-bottom: 0.5rem;
+}
+
+.alert li strong {
+    display: inline;
 }
 
 .alert ul {
@@ -114,6 +118,7 @@
 
 .alert li {
     margin: 0.25rem 0;
+    line-height: 1.6;
 }
 
 .badge {

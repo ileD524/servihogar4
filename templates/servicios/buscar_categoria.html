@@ -96,6 +96,22 @@
                                 {% endif %}
                             </a>
                         </th>
+                        <th>
+                            <a href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}orden=fecha_modificacion&dir={% if orden_actual == 'fecha_modificacion' and dir_actual == 'asc' %}desc{% else %}asc{% endif %}" class="sort-link">
+                                Fecha Modificación
+                                {% if orden_actual == 'fecha_modificacion' %}
+                                    <span class="sort-arrow">{% if dir_actual == 'asc' %}▲{% else %}▼{% endif %}</span>
+                                {% endif %}
+                            </a>
+                        </th>
+                        <th>
+                            <a href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}orden=fecha_eliminacion&dir={% if orden_actual == 'fecha_eliminacion' and dir_actual == 'asc' %}desc{% else %}asc{% endif %}" class="sort-link">
+                                Fecha Eliminación
+                                {% if orden_actual == 'fecha_eliminacion' %}
+                                    <span class="sort-arrow">{% if dir_actual == 'asc' %}▲{% else %}▼{% endif %}</span>
+                                {% endif %}
+                            </a>
+                        </th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
@@ -113,12 +129,20 @@
                             <span class="badge badge-danger">Inactiva</span>
                             {% endif %}
                         </td>
-                        <td>{{ categoria.fecha_creacion|date:"d/m/Y" }}</td>
+                        <td>{{ categoria.fecha_creacion|date:"d/m/Y H:i" }}</td>
+                        <td>{{ categoria.fecha_modificacion|date:"d/m/Y H:i" }}</td>
+                        <td>
+                            {% if categoria.fecha_eliminacion %}
+                                {{ categoria.fecha_eliminacion|date:"d/m/Y H:i" }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
                         <td>
                             <div class="acciones-btns">
                                 <a href="{% url 'servicios:modificar_categoria' categoria.id %}" class="btn btn-sm btn-primary" title="Editar">Editar</a>
                                 {% if categoria.activa %}
-                                    <a href="{% url 'servicios:eliminar_categoria' categoria.id %}" class="btn btn-sm btn-danger" title="Eliminar" onclick="return confirm('¿Eliminar esta categoría?')">Eliminar</a>
+                                    <a href="{% url 'servicios:eliminar_categoria' categoria.id %}" class="btn btn-sm btn-danger" title="Eliminar">Eliminar</a>
                                 {% else %}
                                     <a href="{% url 'servicios:toggle_categoria' categoria.id %}" class="btn btn-sm btn-success" title="Activar">Activar</a>
                                 {% endif %}
@@ -154,7 +178,7 @@
         {% else %}
         <div class="no-resultados">
             <p>No se encontraron categorías</p>
-            <a href="{% url 'servicios:registrar_categoria' %}" class="btn btn-primary">Crear Primera Categoría</a>
+            <a href="{% url 'servicios:registrar_categoria' %}" class="btn btn-primary">Crear Categoría</a>
         </div>
         {% endif %}
     </div>

@@ -101,6 +101,30 @@
                             </a>
                         </th>
                         <th>Estado</th>
+                        <th>
+                            <a href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}orden=fecha_creacion&dir={% if orden_actual == 'fecha_creacion' and dir_actual == 'asc' %}desc{% else %}asc{% endif %}" class="sort-link">
+                                Fecha Creación
+                                {% if orden_actual == 'fecha_creacion' %}
+                                    <span class="sort-arrow">{% if dir_actual == 'asc' %}▲{% else %}▼{% endif %}</span>
+                                {% endif %}
+                            </a>
+                        </th>
+                        <th>
+                            <a href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}orden=fecha_modificacion&dir={% if orden_actual == 'fecha_modificacion' and dir_actual == 'asc' %}desc{% else %}asc{% endif %}" class="sort-link">
+                                Fecha Modificación
+                                {% if orden_actual == 'fecha_modificacion' %}
+                                    <span class="sort-arrow">{% if dir_actual == 'asc' %}▲{% else %}▼{% endif %}</span>
+                                {% endif %}
+                            </a>
+                        </th>
+                        <th>
+                            <a href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}orden=fecha_eliminacion&dir={% if orden_actual == 'fecha_eliminacion' and dir_actual == 'asc' %}desc{% else %}asc{% endif %}" class="sort-link">
+                                Fecha Eliminación
+                                {% if orden_actual == 'fecha_eliminacion' %}
+                                    <span class="sort-arrow">{% if dir_actual == 'asc' %}▲{% else %}▼{% endif %}</span>
+                                {% endif %}
+                            </a>
+                        </th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
@@ -123,11 +147,22 @@
                             <span class="badge badge-danger">Inactivo</span>
                             {% endif %}
                         </td>
+                        <td>{{ servicio.fecha_creacion|date:"d/m/Y H:i" }}</td>
+                        <td>{{ servicio.fecha_modificacion|date:"d/m/Y H:i" }}</td>
+                        <td>
+                            {% if servicio.fecha_eliminacion %}
+                                {{ servicio.fecha_eliminacion|date:"d/m/Y H:i" }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
                         <td>
                             <div class="acciones-btns">
                                 <a href="{% url 'servicios:modificar_servicio' servicio.id %}" class="btn btn-sm btn-primary" title="Editar">Editar</a>
                                 {% if servicio.activo %}
-                                    <a href="{% url 'servicios:eliminar_servicio' servicio.id %}" class="btn btn-sm btn-danger" title="Eliminar" onclick="return confirm('¿Eliminar este servicio?')">Eliminar</a>
+                                    <a href="{% url 'servicios:eliminar_servicio' servicio.id %}" class="btn btn-sm btn-danger" title="Eliminar">Eliminar</a>
+                                {% else %}
+                                    <a href="{% url 'servicios:activar_servicio' servicio.id %}" class="btn btn-sm btn-success" title="Activar">Activar</a>
                                 {% endif %}
                             </div>
                         </td>
@@ -161,7 +196,7 @@
         {% else %}
         <div class="no-resultados">
             <p>No se encontraron servicios</p>
-            <a href="{% url 'servicios:registrar_servicio' %}" class="btn btn-primary">Crear Primer Servicio</a>
+            <a href="{% url 'servicios:registrar_servicio' %}" class="btn btn-primary">Crear Servicio</a>
         </div>
         {% endif %}
     </div>
@@ -404,6 +439,12 @@
 .btn-danger {
     background: #dc3545;
     border-color: #dc3545;
+    color: white;
+}
+
+.btn-success {
+    background: #28a745;
+    border-color: #28a745;
     color: white;
 }
 

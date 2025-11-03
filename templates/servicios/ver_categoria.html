@@ -87,7 +87,7 @@
                     <td class="actions-cell">
                         <a href="{% url 'servicios:modificar_servicio' servicio.id %}" class="btn btn-sm btn-primary" title="Editar">Editar</a>
                         {% if servicio.activo %}
-                            <a href="{% url 'servicios:eliminar_servicio' servicio.id %}" class="btn btn-sm btn-danger" title="Eliminar" onclick="return confirm('¿Eliminar este servicio?')">Eliminar</a>
+                            <a href="{% url 'servicios:eliminar_servicio' servicio.id %}" class="btn btn-sm btn-danger" title="Eliminar">Eliminar</a>
                         {% endif %}
                     </td>
                 </tr>

@@ -40,8 +40,9 @@ def registrar_categoria(request):
 @user_passes_test(es_administrador)
 def modificar_categoria(request, id):
     """Administrador modifica categoría existente (CU-37)"""
+    from django.utils import timezone
     categoria = get_object_or_404(Categoria, id=id)
-    estado_anterior = categoria.activa
+    estado_anterior = categoria.activa  # Guardar el estado anterior ANTES del formulario
     
     if request.method == 'POST':
         form = CategoriaForm(request.POST, instance=categoria)
@@ -52,17 +53,36 @@ def modificar_categoria(request, id):
                 messages.error(request, 'Ya existe otra categoría con ese nombre')
                 return render(request, 'servicios/modificar_categoria.html', {'form': form, 'categoria': categoria})
             
-            categoria_actualizada = form.save()
+            # Guardar sin commit para manejar fecha_eliminacion
+            categoria_actualizada = form.save(commit=False)
             
-            # Si se reactivó la categoría, reactivar todos sus servicios
+            # Manejar fecha de eliminación según el cambio de estado
             if not estado_anterior and categoria_actualizada.activa:
-                servicios_reactivados = Servicio.objects.filter(categoria=categoria_actualizada).update(activo=True)
+                # Si se reactivó la categoría (estaba inactiva y ahora activa)
+                categoria_actualizada.fecha_eliminacion = None
+                # Reactivar todos sus servicios y limpiar sus fechas de eliminación
+                servicios_reactivados = Servicio.objects.filter(categoria=categoria_actualizada).update(
+                    activo=True,
+                    fecha_eliminacion=None
+                )
                 messages.success(request, 
                     f'Categoría "{categoria_actualizada.nombre}" reactivada. '
                     f'{servicios_reactivados} servicio(s) reactivado(s).')
+            elif estado_anterior and not categoria_actualizada.activa:
+                # Si se desactivó la categoría (estaba activa y ahora inactiva)
+                categoria_actualizada.fecha_eliminacion = timezone.now()
+                # Desactivar todos sus servicios y establecer sus fechas de eliminación
+                servicios_desactivados = Servicio.objects.filter(categoria=categoria_actualizada).update(
+                    activo=False,
+                    fecha_eliminacion=timezone.now()
+                )
+                messages.success(request, 
+                    f'Categoría "{categoria_actualizada.nombre}" desactivada. '
+                    f'{servicios_desactivados} servicio(s) desactivado(s).')
             else:
                 messages.success(request, f'Categoría "{categoria_actualizada.nombre}" modificada exitosamente')
             
+            categoria_actualizada.save()
             return redirect('servicios:buscar_categoria')
     else:
         form = CategoriaForm(instance=categoria)
@@ -74,22 +94,36 @@ def modificar_categoria(request, id):
 @user_passes_test(es_administrador)
 def toggle_categoria(request, id):
     """Activa o desactiva una categoría con cascada a servicios"""
+    from django.utils import timezone
     categoria = get_object_or_404(Categoria, id=id)
     estado_anterior = categoria.activa
     
     # Toggle del estado
     categoria.activa = not categoria.activa
+    
+    # Manejar fecha de eliminación
+    if categoria.activa:
+        categoria.fecha_eliminacion = None
+    else:
+        categoria.fecha_eliminacion = timezone.now()
+    
     categoria.save()
     
     if categoria.activa and not estado_anterior:
-        # Se reactivó: reactivar todos sus servicios
-        servicios_afectados = Servicio.objects.filter(categoria=categoria).update(activo=True)
+        # Se reactivó: reactivar todos sus servicios y limpiar fecha_eliminacion
+        servicios_afectados = Servicio.objects.filter(categoria=categoria).update(
+            activo=True,
+            fecha_eliminacion=None
+        )
         messages.success(request, 
             f'Categoría "{categoria.nombre}" activada. '
             f'{servicios_afectados} servicio(s) reactivado(s).')
     elif not categoria.activa and estado_anterior:
-        # Se desactivó: desactivar todos sus servicios
-        servicios_afectados = Servicio.objects.filter(categoria=categoria).update(activo=False)
+        # Se desactivó: desactivar todos sus servicios y establecer fecha_eliminacion
+        servicios_afectados = Servicio.objects.filter(categoria=categoria).update(
+            activo=False,
+            fecha_eliminacion=timezone.now()
+        )
         messages.success(request, 
             f'Categoría "{categoria.nombre}" desactivada. '
             f'{servicios_afectados} servicio(s) desactivado(s).')
@@ -101,6 +135,7 @@ def toggle_categoria(request, id):
 @user_passes_test(es_administrador)
 def eliminar_categoria(request, id):
     """Administrador elimina categoría (lógica) y sus servicios asociados (CU-38)"""
+    from django.utils import timezone
     categoria = get_object_or_404(Categoria, id=id)
     
     # Obtener TODOS los servicios de esta categoría (activos e inactivos)
@@ -108,12 +143,16 @@ def eliminar_categoria(request, id):
     profesionales_afectados = servicios_categoria.values('profesional').distinct().count()
     
     if request.method == 'POST':
-        # Marcar categoría como inactiva
+        # Marcar categoría como inactiva y establecer fecha_eliminacion
         categoria.activa = False
+        categoria.fecha_eliminacion = timezone.now()
         categoria.save()
         
-        # Marcar TODOS los servicios de esta categoría como inactivos
-        servicios_afectados = servicios_categoria.update(activo=False)
+        # Marcar TODOS los servicios de esta categoría como inactivos y establecer fecha_eliminacion
+        servicios_afectados = servicios_categoria.update(
+            activo=False,
+            fecha_eliminacion=timezone.now()
+        )
         
         messages.success(request, 
             f'Categoría "{categoria.nombre}" eliminada. '
@@ -153,6 +192,11 @@ def buscar_categoria(request):
     # Obtener parámetros de ordenamiento
     orden = request.GET.get('orden', 'id')
     direccion = request.GET.get('dir', 'asc')
+    
+    # Validar campos permitidos para ordenamiento
+    campos_validos = ['id', 'nombre', 'activa', 'fecha_creacion', 'fecha_modificacion', 'fecha_eliminacion', 'servicios']
+    if orden not in campos_validos:
+        orden = 'id'
     
     # Aplicar ordenamiento
     if direccion == 'desc':
@@ -217,6 +261,7 @@ def registrar_servicio(request):
 @user_passes_test(es_administrador)
 def eliminar_servicio(request, id):
     """Administrador elimina servicio (lógica) verificando turnos activos (CU-14)"""
+    from django.utils import timezone
     servicio = get_object_or_404(Servicio, id=id)
     
     # Verificar si hay turnos activos asociados
@@ -233,8 +278,9 @@ def eliminar_servicio(request, id):
         return redirect('servicios:buscar_servicio')
     
     if request.method == 'POST':
-        # Marcar servicio como inactivo
+        # Marcar servicio como inactivo y establecer fecha de eliminación
         servicio.activo = False
+        servicio.fecha_eliminacion = timezone.now()
         servicio.save()
         
         messages.success(request, f'Servicio "{servicio.nombre}" eliminado exitosamente')
@@ -243,11 +289,35 @@ def eliminar_servicio(request, id):
     return render(request, 'servicios/eliminar_servicio.html', {'servicio': servicio})
 
 
+# Activar Servicio
+@user_passes_test(es_administrador)
+def activar_servicio(request, id):
+    """Administrador reactiva un servicio eliminado"""
+    servicio = get_object_or_404(Servicio, id=id)
+    
+    # Verificar que la categoría esté activa
+    if not servicio.categoria.activa:
+        messages.error(request, 
+            f'No se puede activar el servicio "{servicio.nombre}" porque '
+            f'su categoría "{servicio.categoria.nombre}" está inactiva.')
+        return redirect('servicios:buscar_servicio')
+    
+    # Reactivar servicio y limpiar fecha de eliminación
+    servicio.activo = True
+    servicio.fecha_eliminacion = None
+    servicio.save()
+    
+    messages.success(request, f'Servicio "{servicio.nombre}" reactivado exitosamente')
+    return redirect('servicios:buscar_servicio')
+
+
 # CU-15: Modificar Servicio
 @user_passes_test(es_administrador)
 def modificar_servicio(request, id):
     """Administrador modifica servicio existente (CU-15)"""
+    from django.utils import timezone
     servicio = get_object_or_404(Servicio, id=id)
+    estado_anterior = servicio.activo  # Guardar el estado anterior
     
     if request.method == 'POST':
         form = ServicioForm(request.POST, instance=servicio)
@@ -258,8 +328,29 @@ def modificar_servicio(request, id):
                 messages.error(request, 'Ya existe otro servicio con ese nombre')
                 return render(request, 'servicios/modificar_servicio.html', {'form': form, 'servicio': servicio})
             
-            form.save()
-            messages.success(request, f'Servicio "{servicio.nombre}" modificado exitosamente')
+            # Guardar sin commit para manejar fecha_eliminacion
+            servicio_actualizado = form.save(commit=False)
+            
+            # Manejar fecha de eliminación según el cambio de estado
+            if not estado_anterior and servicio_actualizado.activo:
+                # Si se reactivó el servicio (estaba inactivo y ahora activo)
+                # Verificar que la categoría esté activa
+                if not servicio_actualizado.categoria.activa:
+                    messages.error(request, 
+                        f'No se puede activar el servicio porque su categoría '
+                        f'"{servicio_actualizado.categoria.nombre}" está inactiva.')
+                    return render(request, 'servicios/modificar_servicio.html', {'form': form, 'servicio': servicio})
+                
+                servicio_actualizado.fecha_eliminacion = None
+                messages.success(request, f'Servicio "{servicio_actualizado.nombre}" reactivado exitosamente')
+            elif estado_anterior and not servicio_actualizado.activo:
+                # Si se desactivó el servicio (estaba activo y ahora inactivo)
+                servicio_actualizado.fecha_eliminacion = timezone.now()
+                messages.success(request, f'Servicio "{servicio_actualizado.nombre}" desactivado exitosamente')
+            else:
+                messages.success(request, f'Servicio "{servicio_actualizado.nombre}" modificado exitosamente')
+            
+            servicio_actualizado.save()
             return redirect('servicios:buscar_servicio')
     else:
         form = ServicioForm(instance=servicio)
@@ -295,6 +386,11 @@ def buscar_servicio(request):
     # Obtener parámetros de ordenamiento
     orden = request.GET.get('orden', 'id')
     direccion = request.GET.get('dir', 'asc')
+    
+    # Validar campos permitidos para ordenamiento
+    campos_validos = ['id', 'nombre', 'categoria__nombre', 'precio_base', 'duracion_estimada', 'activo', 'fecha_creacion', 'fecha_modificacion', 'fecha_eliminacion']
+    if orden not in campos_validos:
+        orden = 'id'
     
     # Aplicar ordenamiento
     if direccion == 'desc':
@@ -340,99 +436,3 @@ def ver_categoria(request, id):
     servicios = Servicio.objects.filter(categoria=categoria).select_related('profesional__usuario')
     return render(request, 'servicios/ver_categoria.html', {'categoria': categoria, 'servicios': servicios})
 
-
-@user_passes_test(es_administrador)
-def registrar_servicio(request):
-    """Administrador registra nuevo servicio"""
-    if request.method == 'POST':
-        form = ServicioForm(request.POST)
-        if form.is_valid():
-            servicio = form.save()
-            messages.success(request, 'Servicio registrado exitosamente')
-            return redirect('servicios:buscar_servicio')
-    else:
-        form = ServicioForm()
-    
-    return render(request, 'servicios/registrar_servicio.html', {'form': form})
-
-
-@user_passes_test(es_administrador)
-def modificar_servicio(request, id):
-    """Administrador modifica servicio"""
-    servicio = get_object_or_404(Servicio, id=id)
-    
-    if request.method == 'POST':
-        form = ServicioForm(request.POST, instance=servicio)
-        if form.is_valid():
-            form.save()
-
-            messages.success(request, 'Servicio modificado exitosamente')
-            return redirect('servicios:buscar_servicio')
-    else:
-        form = ServicioForm(instance=servicio)
-    
-    return render(request, 'servicios/modificar_servicio.html', {'form': form, 'servicio': servicio})
-
-
-@user_passes_test(es_administrador)
-def eliminar_servicio(request, id):
-    """Administrador elimina (desactiva) servicio"""
-    servicio = get_object_or_404(Servicio, id=id)
-    
-    if request.method == 'POST':
-        servicio.activo = False
-        servicio.save()
-
-        messages.success(request, 'Servicio eliminado exitosamente')
-        return redirect('servicios:buscar_servicio')
-    
-    return render(request, 'servicios/eliminar_servicio.html', {'servicio': servicio})
-
-
-@user_passes_test(es_administrador)
-def registrar_categoria(request):
-    """Administrador registra nueva categoría"""
-    if request.method == 'POST':
-        form = CategoriaForm(request.POST)
-        if form.is_valid():
-            categoria = form.save()
-
-            messages.success(request, 'Categoría registrada exitosamente')
-            return redirect('servicios:ver_categoria', id=categoria.id)
-    else:
-        form = CategoriaForm()
-    
-    return render(request, 'servicios/registrar_categoria.html', {'form': form})
-
-
-@user_passes_test(es_administrador)
-def modificar_categoria(request, id):
-    """Administrador modifica categoría"""
-    categoria = get_object_or_404(Categoria, id=id)
-    
-    if request.method == 'POST':
-        form = CategoriaForm(request.POST, instance=categoria)
-        if form.is_valid():
-            form.save()
-
-            messages.success(request, 'Categoría modificada exitosamente')
-            return redirect('servicios:ver_categoria', id=categoria.id)
-    else:
-        form = CategoriaForm(instance=categoria)
-    
-    return render(request, 'servicios/modificar_categoria.html', {'form': form, 'categoria': categoria})
-
-
-@user_passes_test(es_administrador)
-def eliminar_categoria(request, id):
-    """Administrador elimina (desactiva) categoría"""
-    categoria = get_object_or_404(Categoria, id=id)
-    
-    if request.method == 'POST':
-        categoria.activa = False
-        categoria.save()
-
-        messages.success(request, 'Categoría eliminada exitosamente')
-        return redirect('servicios:buscar_categoria')
-    
-    return render(request, 'servicios/eliminar_categoria.html', {'categoria': categoria})

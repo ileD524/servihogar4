@@ -172,7 +172,7 @@
 .usuarios-table thead,
 .servicios-table thead,
 .categorias-table thead {
-    background: #f8f9fa;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
 .data-table th,
@@ -182,10 +182,25 @@
     padding: 1.1rem 1.2rem;
     text-align: left;
     font-weight: 600;
-    color: #495057;
+    color: #ffffff;
     border-bottom: 2px solid #dee2e6;
     font-size: 0.9rem;
     text-transform: uppercase;
+}
+
+.data-table th a,
+.usuarios-table th a,
+.servicios-table th a,
+.categorias-table th a {
+    color: #ffffff;
+    text-decoration: none;
+}
+
+.data-table th a:hover,
+.usuarios-table th a:hover,
+.servicios-table th a:hover,
+.categorias-table th a:hover {
+    color: #f0f0f0;
 }
 
 .data-table td,
