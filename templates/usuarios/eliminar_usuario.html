@@ -22,8 +22,7 @@
             {% csrf_token %}
             <div class="form-actions">
                 <button type="submit" class="btn btn-danger">Sí, Eliminar Usuario</button>
-                <a href="{% url 'usuarios:perfil' usuario.id %}" class="btn btn-secondary">No, Cancelar</a>
-                <a href="{% url 'usuarios:buscar_usuario' %}" class="btn btn-secondary">Volver a Gestión</a>
+                <a href="{% url 'usuarios:buscar_usuario' %}" class="btn btn-secondary">No, Cancelar</a>
             </div>
         </form>
     </div>
