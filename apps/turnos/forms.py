@@ -1,27 +1,43 @@
 from django import forms
 from .models import Turno, Pago, Calificacion
-from apps.servicios.models import Servicio
+from apps.servicios.models import Servicio, Categoria
 
 class SolicitarTurnoForm(forms.ModelForm):
     """Formulario para solicitar turno (CU-23)"""
+    # Campo para seleccionar servicio (agrupado por categoría)
+    categoria = forms.ModelChoiceField(
+        queryset=Categoria.objects.filter(activa=True),
+        required=False,
+        label='Categoría',
+        empty_label='Seleccione una categoría',
+        widget=forms.Select(attrs={'class': 'form-control', 'id': 'id_categoria'})
+    )
+    
     class Meta:
         model = Turno
-        fields = ['servicio', 'fecha', 'hora', 'direccion_servicio', 'observaciones']
+        fields = ['direccion_servicio', 'observaciones']
         widgets = {
-            'fecha': forms.DateInput(attrs={'type': 'date'}),
-            'hora': forms.TimeInput(attrs={'type': 'time'}),
-            'direccion_servicio': forms.Textarea(attrs={'rows': 3}),
-            'observaciones': forms.Textarea(attrs={'rows': 3}),
+            'direccion_servicio': forms.Textarea(attrs={
+                'rows': 3,
+                'class': 'form-control',
+                'id': 'id_direccion',
+                'placeholder': 'La dirección se completará automáticamente al seleccionar en el mapa'
+            }),
+            'observaciones': forms.Textarea(attrs={
+                'rows': 3,
+                'class': 'form-control',
+                'placeholder': 'Ingrese observaciones adicionales para el profesional'
+            }),
+        }
+        labels = {
+            'direccion_servicio': 'Dirección del servicio',
+            'observaciones': 'Observaciones'
         }
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Solo servicios activos con profesionales activos y categorías activas
-        self.fields['servicio'].queryset = Servicio.objects.filter(
-            activo=True,
-            profesional__usuario__activo=True,
-            categoria__activa=True
-        ).select_related('categoria', 'profesional__usuario')
+        # Los campos fecha, hora y servicio se manejarán dinámicamente con JavaScript
+        # No los incluimos en el formulario porque se seleccionan desde la grilla
 
 
 class ModificarTurnoForm(forms.ModelForm):

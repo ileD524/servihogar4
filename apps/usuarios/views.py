@@ -188,8 +188,14 @@ def modificar_perfil(request):
         # Esto ocultará los campos de administrador (rol, activo)
         form = ModificarUsuarioForm(request.POST, request.FILES, instance=usuario, editor_user=None)
         if form.is_valid():
-            # Guardar datos básicos
+            # Guardar datos básicos (sin commit para proteger campos)
             usuario_actualizado = form.save(commit=False)
+            
+            # PROTECCIÓN: Asegurar que rol y activo NO cambien
+            # Los clientes y profesionales NO pueden modificar su propio rol o estado
+            usuario_actualizado.rol = usuario.rol  # Mantener rol original
+            usuario_actualizado.activo = usuario.activo  # Mantener estado original
+            
             usuario_actualizado.save()
             
             # Si es profesional, actualizar servicios y horarios

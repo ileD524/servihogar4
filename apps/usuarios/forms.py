@@ -112,15 +112,16 @@ class ModificarUsuarioForm(forms.ModelForm):
         
         instance = kwargs.get('instance')
         
-        # Si editor_user es None, significa que el usuario se está editando a sí mismo
-        # En ese caso, ocultar campos de administrador (rol, activo)
+        # Si editor_user es None, significa que el usuario se está editando a sí mismo (cliente o profesional)
+        # En ese caso, ELIMINAR campos de administrador (rol, activo) para que no puedan modificarlos
         if self.editor_user is None:
             if 'activo' in self.fields:
                 del self.fields['activo']
             if 'rol' in self.fields:
                 del self.fields['rol']
         
-        # Eliminar completamente campos sensibles si el usuario que se está editando es administrador
+        # Si el editor ES administrador pero el usuario editado TAMBIÉN es administrador
+        # NO permitir cambiar rol ni estado (protección de administradores)
         elif instance and instance.rol == 'administrador':
             # Los administradores no pueden cambiar su estado 'activo' ni su rol
             if 'activo' in self.fields:

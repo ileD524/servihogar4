@@ -7,6 +7,10 @@ urlpatterns = [
     # CU-23: Solicitar Turno
     path('solicitar/', views.solicitar_turno, name='solicitar_turno'),
     
+    # APIs para solicitar turno
+    path('api/servicios-por-categoria/', views.obtener_servicios_por_categoria, name='servicios_por_categoria'),
+    path('api/profesionales-disponibles/', views.obtener_profesionales_disponibles, name='profesionales_disponibles'),
+    
     # CU-24: Modificar Turno
     path('modificar/<int:id>/', views.modificar_turno, name='modificar_turno'),
     
