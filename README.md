@@ -1,226 +1,189 @@
-# 🏠 ServiHogar - Plataforma de Servicios del Hogar
+# ServiHogar - Sistema de Gestión de Servicios del Hogar
 
-Sistema completo en Django para conectar clientes con profesionales de servicios del hogar.
+Plataforma web desarrollada en Django para la gestión integral de servicios del hogar, conectando clientes con profesionales mediante un sistema de turnos, calificaciones y pagos.
 
-## 📋 Características
+## Descripción General
 
-- **Gestión de Usuarios**: Registro, login (convencional y Google OAuth), perfiles de Cliente/Profesional/Administrador
-- **Gestión de Turnos**: Solicitar, modificar, cancelar y calificar turnos
-- **Gestión de Servicios**: Búsqueda de servicios por categoría, precio, ubicación
-- **Gestión de Promociones**: Crear y aplicar promociones y descuentos
-- **Gestión de Políticas**: Políticas de cancelación y reembolso
-- **Reportes**: Estadísticas de preferencias de clientes, servicios populares, ingresos, desempeño de profesionales
-- **Integración con APIs**:
-  - Google OAuth para login
-  - Google Maps para geolocalización
-  - Mercado Pago para pagos
+ServiHogar es una aplicación web que permite la administración completa de servicios domésticos. El sistema gestiona usuarios con diferentes roles (clientes, profesionales y administradores), servicios organizados por categorías, solicitud y seguimiento de turnos, aplicación de promociones, políticas de cancelación y generación de reportes estadísticos.
 
-## 🚀 Instalación
+## Funcionalidades Principales
 
-### 1. Clonar el repositorio o usar el código existente
+### Gestión de Usuarios
+Sistema completo de autenticación y administración de usuarios con tres roles diferenciados: clientes que solicitan servicios, profesionales que los ofrecen y administradores que gestionan la plataforma. Incluye registro, login convencional, modificación de perfiles, activación y desactivación de cuentas. Los usuarios pueden subir fotos de perfil y gestionar su información personal. El sistema implementa control de acceso basado en roles con decoradores personalizados.
 
-```bash
-cd c:\Users\Usuario\Pictures\TF2025\servihogar4
+### Gestión de Servicios y Categorías
+Los servicios se organizan en categorías para facilitar su búsqueda y gestión. Cada servicio tiene nombre, descripción, precio base, duración estimada y está asociado a un profesional. El sistema permite crear, modificar y desactivar tanto servicios como categorías. Implementa validación de dependencias: al desactivar una categoría, todos sus servicios asociados se desactivan automáticamente. Incluye búsqueda avanzada con filtros por nombre, categoría y estado, además de ordenamiento por múltiples columnas.
+
+### Gestión de Turnos
+Sistema completo para el ciclo de vida de los turnos: solicitud por parte del cliente, confirmación o rechazo por el profesional, modificación de fecha/hora, cancelación con validación de políticas, y calificación posterior al servicio completado. Los turnos tienen estados (pendiente, confirmado, cancelado, completado) y se validan horarios disponibles, profesionales activos y servicios vigentes. Incluye historial completo de turnos con filtros por fecha, servicio y estado.
+
+### Gestión de Promociones
+Creación y administración de códigos promocionales con descuentos porcentuales o montos fijos. Las promociones tienen fecha de inicio y fin, límite de usos, y pueden ser de tipo público o privado. El sistema valida automáticamente la vigencia, disponibilidad y aplicabilidad de cada promoción al momento de solicitar un turno.
+
+### Políticas de Cancelación
+Definición de políticas que establecen plazos mínimos de cancelación y porcentajes de reembolso según el tiempo de anticipación. Las políticas se aplican automáticamente al cancelar turnos y determinan si corresponde reembolso total, parcial o ninguno.
+
+### Sistema de Reportes
+Generación de reportes estadísticos sobre el funcionamiento de la plataforma: preferencias y comportamiento de clientes, servicios más solicitados, ingresos generados por período, y desempeño de profesionales (cantidad de servicios, calificación promedio, ingresos).
+
+### Auditoría de Fechas
+Todos los registros principales (usuarios, servicios, categorías) implementan seguimiento de fechas de creación, modificación y eliminación lógica. Esto permite trazabilidad completa de cambios y la posibilidad de reactivar registros previamente desactivados.
+
+## Tecnologías Utilizadas
+
+- Backend: Django 5.2.7
+- Base de datos: SQLite
+- Frontend: HTML5, CSS3
+- Python: 3.13.9
+- Pillow: para manejo de imágenes
+- Requests: para integraciones con APIs externas
+
+## Estructura del Proyecto
+
+```
+servihogar4/
+├── manage.py
+├── db.sqlite3
+├── requirements.txt
+├── servihogar/
+│   ├── settings.py
+│   ├── urls.py
+│   └── wsgi.py
+├── apps/
+│   ├── usuarios/
+│   ├── servicios/
+│   ├── turnos/
+│   ├── promociones/
+│   ├── politicas/
+│   └── reportes/
+├── templates/
+│   ├── base.html
+│   ├── home.html
+│   ├── usuarios/
+│   ├── servicios/
+│   ├── turnos/
+│   ├── promociones/
+│   ├── politicas/
+│   └── reportes/
+├── static/
+│   ├── css/
+│   │   ├── styles.css
+│   │   └── gestion-comun.css
+│   └── img/
+└── media/
+    └── usuarios/
 ```
 
-### 2. Crear entorno virtual
+## Instalación y Configuración
 
+### Requisitos Previos
+- Python 3.13 o superior
+- pip para gestión de paquetes
+
+### Pasos de Instalación
+
+1. Clonar o descargar el proyecto:
+```bash
+# Si usas Git
+git clone <url-del-repositorio>
+cd servihogar4
+
+# O descargar y descomprimir el archivo ZIP, luego navegar al directorio
+cd servihogar4
+```
+
+2. Crear y activar entorno virtual:
+
+**Windows:**
 ```bash
 python -m venv venv
 venv\Scripts\activate
 ```
 
-### 3. Instalar dependencias
+**Linux/Mac:**
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
 
+3. Instalar dependencias:
+```bash
+pip install -r requirements.txt
+```
+
+Si no existe el archivo `requirements.txt`, instalar manualmente:
 ```bash
 pip install django pillow requests
 ```
 
-### 4. Configurar variables de entorno (settings.py)
-
-Edita `servihogar/settings.py` y reemplaza las credenciales de las APIs:
-
-```python
-# Google OAuth
-GOOGLE_OAUTH_CLIENT_ID = 'tu-client-id-aqui'
-GOOGLE_OAUTH_CLIENT_SECRET = 'tu-client-secret-aqui'
-
-# Mercado Pago
-MERCADO_PAGO_PUBLIC_KEY = 'tu-public-key-aqui'
-MERCADO_PAGO_ACCESS_TOKEN = 'tu-access-token-aqui'
-
-# Google Maps
-GOOGLE_MAPS_API_KEY = 'tu-api-key-aqui'
-```
-
-### 5. Crear migraciones y aplicar
-
+4. Aplicar migraciones de base de datos:
 ```bash
-python manage.py makemigrations
 python manage.py migrate
 ```
 
-### 6. Crear superusuario
-
+5. Crear superusuario administrador:
 ```bash
 python manage.py createsuperuser
 ```
-
-Completa los datos:
-- Username: admin
-- Email: admin@servihogar.com
-- Password: (tu contraseña)
+Completar los datos solicitados:
+- Username: (elegir nombre de usuario)
+- Email: (correo electrónico)
+- Password: (contraseña segura)
 - Rol: administrador
 
-### 7. Ejecutar servidor
-
+6. Ejecutar servidor de desarrollo:
 ```bash
 python manage.py runserver
 ```
 
-Accede a: http://127.0.0.1:8000/
-
-## 📁 Estructura del Proyecto
-
-```
-servihogar4/
-├── manage.py
-├── servihogar/
-│   ├── settings.py          # Configuración principal
-│   ├── urls.py              # URLs principales
-│   └── wsgi.py
-├── apps/
-│   ├── usuarios/            # CU-04 a CU-08: Gestión de usuarios
-│   ├── turnos/              # CU-23 a CU-32: Gestión de turnos
-│   ├── servicios/           # CU-40 a CU-41: Gestión de servicios
-│   ├── promociones/         # CU-18 a CU-20, CU-45: Gestión de promociones
-│   ├── politicas/           # CU-19, CU-22, CU-23, CU-25, CU-26, CU-46
-│   ├── reportes/            # CU-34: Reportes
-│   ├── calificaciones/      # Calificaciones de turnos
-│   └── auditoria/           # Registro de auditoría
-├── templates/               # Plantillas HTML
-│   ├── base.html
-│   ├── home.html
-│   ├── usuarios/
-│   ├── turnos/
-│   ├── servicios/
-│   ├── promociones/
-│   ├── politicas/
-│   └── reportes/
-└── static/
-    ├── css/
-    │   └── styles.css       # Estilos CSS
-    └── img/
+Para acceder desde otros dispositivos en la misma red:
+```bash
+python manage.py runserver 0.0.0.0:8000
 ```
 
-## 👥 Roles del Sistema
+7. Acceder a la aplicación:
+- Desde el mismo equipo: `http://127.0.0.1:8000/`
+- Desde otros dispositivos: `http://<IP-del-servidor>:8000/`
+- Panel de administración: `http://127.0.0.1:8000/admin/`
+
+**Nota:** Para permitir acceso desde otros dispositivos, agregar la IP del servidor en `servihogar/settings.py`:
+```python
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '<tu-IP-local>']
+```
+
+## Roles y Permisos
 
 ### Cliente
-- Buscar servicios
-- Solicitar turnos
-- Modificar/cancelar turnos
+- Visualizar y buscar servicios disponibles
+- Solicitar turnos con profesionales
+- Modificar turnos pendientes
+- Cancelar turnos según políticas
 - Calificar servicios completados
-- Ver historial de turnos
-- Recibir promociones
+- Ver historial personal de turnos
+- Aplicar códigos promocionales
 
 ### Profesional
-- Gestionar servicios ofrecidos
-- Confirmar/rechazar turnos
-- Ver historial de turnos
-- Consultar pagos recibidos
+- Gestionar servicios propios
+- Confirmar o rechazar solicitudes de turnos
+- Ver agenda de turnos
+- Consultar historial de servicios prestados
+- Visualizar calificaciones recibidas
 
 ### Administrador
-- Administrar usuarios
-- Gestionar categorías y servicios
-- Crear/modificar/eliminar políticas
-- Gestionar promociones
-- Generar reportes del sistema
+- Gestión completa de usuarios (crear, modificar, activar/desactivar)
+- Gestión de categorías de servicios
+- Gestión de servicios de todos los profesionales
+- Creación y modificación de promociones
+- Definición de políticas de cancelación
+- Generación de reportes estadísticos
+- Acceso total al sistema
 
-## 🔑 Casos de Uso Implementados
 
-### Gestión de Usuarios
-- **CU-04**: Registrar Usuario
-- **CU-05**: Modificar Usuario
-- **CU-06**: Eliminar Usuario
-- **CU-07**: Iniciar Sesión (convencional y Google OAuth)
-- **CU-08**: Cerrar Sesión
+## Trabajo Futuro
 
-### Gestión de Turnos
-- **CU-23**: Solicitar Turno
-- **CU-24**: Modificar Turno
-- **CU-25**: Cancelar Turno
-- **CU-26**: Calificar Turno
-- **CU-31**: Ver Historial de Turnos
-- **CU-32**: Buscar Turno
+El sistema está diseñado para permitir futuras integraciones con APIs externas como Google OAuth para autenticación, Google Maps para geolocalización de servicios, y Mercado Pago para procesamiento de pagos online.
 
-### Gestión de Servicios
-- **CU-40**: Buscar Servicio
-- **CU-41**: Buscar Categoría
+## Información del Proyecto
 
-### Gestión de Promociones
-- **CU-18**: Registrar Promoción
-- **CU-19**: Modificar Promoción
-- **CU-20**: Eliminar Promoción
-- **CU-45**: Buscar Promoción
-
-### Gestión de Políticas
-- **CU-19**: Registrar Política de Reembolso
-- **CU-22**: Modificar Política de Reembolso
-- **CU-23**: Eliminar Política de Reembolso
-- **CU-25**: Modificar Política de Cancelación
-- **CU-26**: Eliminar Política de Cancelación
-- **CU-46**: Buscar Política
-
-### Reportes
-- **CU-34**: Generar Reporte de Preferencias y Comportamientos de Cliente
-- Reporte de Servicios Populares
-- Reporte de Ingresos
-- Reporte de Desempeño de Profesionales
-
-## 🔧 Tecnologías Utilizadas
-
-- **Backend**: Django 5.2.7
-- **Base de datos**: SQLite (desarrollo) / PostgreSQL (producción)
-- **Frontend**: HTML5, CSS3 puro
-- **APIs externas**:
-  - Google OAuth 2.0
-  - Google Maps JavaScript API
-  - Mercado Pago API
-
-## 📝 Notas Importantes
-
-1. **Migraciones**: Cada vez que modifiques un modelo, ejecuta:
-   ```bash
-   python manage.py makemigrations
-   python manage.py migrate
-   ```
-
-2. **Archivos estáticos**: En producción, ejecuta:
-   ```bash
-   python manage.py collectstatic
-   ```
-
-3. **Seguridad**: Antes de deploy en producción:
-   - Cambia `DEBUG = False` en settings.py
-   - Actualiza `SECRET_KEY`
-   - Configura `ALLOWED_HOSTS`
-   - Usa variables de entorno para credenciales sensibles
-
-## 🎯 URLs Principales
-
-- **Home**: http://127.0.0.1:8000/
-- **Admin**: http://127.0.0.1:8000/admin/
-- **Login**: http://127.0.0.1:8000/usuarios/login/
-- **Registro**: http://127.0.0.1:8000/usuarios/registrar/
-- **Servicios**: http://127.0.0.1:8000/servicios/buscar/
-- **Solicitar Turno**: http://127.0.0.1:8000/turnos/solicitar/
-- **Historial**: http://127.0.0.1:8000/turnos/historial/
-- **Reportes**: http://127.0.0.1:8000/reportes/
-
-## 🤝 Contribución
-
-Este es un proyecto académico para el Trabajo Final 2025.
-
-## 📄 Licencia
-
-Proyecto educativo - ServiHogar 2025
+Proyecto académico desarrollado para Trabajo Final 2025.
+Sistema de gestión completo con arquitectura modular y escalable.
