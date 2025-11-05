@@ -3,6 +3,7 @@ from django.conf import settings
 from django.utils import timezone
 from apps.usuarios.models import Cliente, Profesional
 from apps.servicios.models import Servicio
+from apps.promociones.models import Promocion
 
 class Turno(models.Model):
     """Turnos solicitados por clientes"""
@@ -17,6 +18,7 @@ class Turno(models.Model):
     cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE, related_name='turnos')
     profesional = models.ForeignKey(Profesional, on_delete=models.CASCADE, related_name='turnos')
     servicio = models.ForeignKey(Servicio, on_delete=models.CASCADE, related_name='turnos')
+    promocion = models.ForeignKey(Promocion, on_delete=models.SET_NULL, related_name='turnos', blank=True, null=True)
     fecha = models.DateField(default=timezone.now)
     hora = models.TimeField(default=timezone.now)
     direccion_servicio = models.TextField()

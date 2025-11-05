@@ -19,6 +19,7 @@ class Promocion(models.Model):
     activa = models.BooleanField(default=True)
     codigo = models.CharField(max_length=50, unique=True, blank=True, null=True)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_modificacion = models.DateTimeField(auto_now=True)
     
     class Meta:
         verbose_name = 'Promoción'
