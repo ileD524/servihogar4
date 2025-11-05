@@ -34,6 +34,7 @@ urlpatterns = [
     path('api/usuarios/', include('apps.usuarios.api_urls')),
     path('api/auth/', include('apps.usuarios.auth_urls')),  # Autenticación
     path('api/promociones/', include('apps.promociones.api_urls')),  # Promociones
+    path('api/reportes/', include('apps.reportes.api_urls')),  # Reportes y Estadísticas
 ]
 
 # Servir archivos media en desarrollo
