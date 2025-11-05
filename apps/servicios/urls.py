@@ -18,4 +18,16 @@ urlpatterns = [
     path('categorias/modificar/<int:id>/', views.modificar_categoria, name='modificar_categoria'),  # CU-37
     path('categorias/eliminar/<int:id>/', views.eliminar_categoria, name='eliminar_categoria'),  # CU-38
     path('categorias/toggle/<int:id>/', views.toggle_categoria, name='toggle_categoria'),  # Activar/Desactivar
+    
+    # Vistas AJAX para modales - Servicios
+    path('ver/<int:id>/ajax/', views.ver_servicio_ajax, name='ver_servicio_ajax'),
+    path('modificar/<int:id>/ajax/', views.modificar_servicio_ajax, name='modificar_servicio_ajax'),
+    path('eliminar/<int:id>/ajax/', views.eliminar_servicio_ajax, name='eliminar_servicio_ajax'),
+    path('activar/<int:id>/ajax/', views.activar_servicio_ajax, name='activar_servicio_ajax'),
+    
+    # Vistas AJAX para modales - Categorías
+    path('categorias/ver/<int:id>/ajax/', views.ver_categoria_ajax, name='ver_categoria_ajax'),
+    path('categorias/modificar/<int:id>/ajax/', views.modificar_categoria_ajax, name='modificar_categoria_ajax'),
+    path('categorias/eliminar/<int:id>/ajax/', views.eliminar_categoria_ajax, name='eliminar_categoria_ajax'),
+    path('categorias/activar/<int:id>/ajax/', views.activar_categoria_ajax, name='activar_categoria_ajax'),
 ]

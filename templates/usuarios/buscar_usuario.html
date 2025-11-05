@@ -5,6 +5,7 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/gestion-comun.css' %}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <style>
 /* Estilos específicos adicionales para usuarios */
 .sort-link {
@@ -23,6 +24,239 @@
 .sort-arrow {
     font-size: 0.7rem;
     margin-left: 3px;
+}
+
+/* Estilos para botones con iconos */
+.btn-icon {
+    padding: 6px 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 14px;
+}
+
+.btn-icon i {
+    margin: 0;
+}
+
+.btn-icon:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+/* Estilos para modales */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.5);
+    animation: fadeIn 0.3s;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 3% auto;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    animation: slideDown 0.3s;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+@keyframes slideDown {
+    from {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.modal-small {
+    width: 90%;
+    max-width: 500px;
+}
+
+.modal-large {
+    width: 90%;
+    max-width: 900px;
+}
+
+.modal-header {
+    padding: 20px 30px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 8px 8px 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header-danger {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.modal-header-success {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.modal-close {
+    color: white;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.modal-close:hover,
+.modal-close:focus {
+    transform: scale(1.2);
+}
+
+.modal-body {
+    padding: 30px;
+}
+
+.modal-text-center {
+    text-align: center;
+    font-size: 1.1rem;
+    margin-bottom: 15px;
+}
+
+.modal-text-muted {
+    text-align: center;
+    color: #666;
+    font-size: 0.9rem;
+    margin-bottom: 25px;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.loading {
+    text-align: center;
+    padding: 40px;
+    color: #666;
+    font-size: 1.1rem;
+}
+
+.loading:after {
+    content: '...';
+    animation: dots 1.5s infinite;
+}
+
+@keyframes dots {
+    0%, 20% { content: '.'; }
+    40% { content: '..'; }
+    60%, 100% { content: '...'; }
+}
+
+.error-message {
+    text-align: center;
+    color: #f5576c;
+    padding: 20px;
+    font-size: 1rem;
+}
+
+.field-error {
+    color: #f5576c;
+    font-size: 0.85rem;
+    margin-top: 5px;
+}
+
+/* Estilos para el perfil dentro del modal */
+.perfil-modal-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.perfil-modal-header {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.perfil-modal-foto {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid #667eea;
+}
+
+.perfil-modal-foto-placeholder {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    font-weight: bold;
+}
+
+.perfil-modal-info h3 {
+    margin: 0 0 10px 0;
+    color: #333;
+}
+
+.perfil-modal-info p {
+    margin: 5px 0;
+    color: #666;
+}
+
+.perfil-modal-detalles {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 15px;
+}
+
+.perfil-modal-item {
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    border-left: 4px solid #667eea;
+}
+
+.perfil-modal-item strong {
+    display: block;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.perfil-modal-item span {
+    color: #666;
 }
 </style>
 {% endblock %}
@@ -189,13 +423,21 @@
                         </td>
                         <td>
                             <div class="acciones-btns">
-                                <a href="{% url 'usuarios:perfil' usuario.id %}" class="btn btn-sm" title="Ver perfil">Ver</a>
+                                <button onclick="verUsuario({{ usuario.id }})" class="btn btn-sm btn-icon" title="Ver perfil">
+                                    <i class="fas fa-eye"></i>
+                                </button>
                                 {% if usuario.rol != 'administrador' %}
-                                    <a href="{% url 'usuarios:modificar_usuario' usuario.id %}" class="btn btn-sm btn-primary" title="Editar">Editar</a>
+                                    <button onclick="editarUsuario({{ usuario.id }})" class="btn btn-sm btn-icon btn-primary" title="Editar">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
                                     {% if usuario.activo %}
-                                        <a href="{% url 'usuarios:eliminar_usuario' usuario.id %}" class="btn btn-sm btn-danger" title="Eliminar">Eliminar</a>
+                                        <button onclick="confirmarEliminar({{ usuario.id }}, '{{ usuario.username }}')" class="btn btn-sm btn-icon btn-danger" title="Eliminar">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
                                     {% else %}
-                                        <a href="{% url 'usuarios:activar_usuario' usuario.id %}" class="btn btn-sm btn-success" title="Activar">Activar</a>
+                                        <button onclick="activarUsuario({{ usuario.id }})" class="btn btn-sm btn-icon btn-success" title="Activar">
+                                            <i class="fas fa-check"></i>
+                                        </button>
                                     {% endif %}
                                 {% endif %}
                             </div>
@@ -225,5 +467,250 @@
         {% endif %}
     </div>
 </div>
+
+<!-- Modal Ver Usuario -->
+<div id="modalVerUsuario" class="modal">
+    <div class="modal-content modal-large">
+        <div class="modal-header">
+            <h2><i class="fas fa-user"></i> Detalle del Usuario</h2>
+            <span class="modal-close" onclick="cerrarModal('modalVerUsuario')">&times;</span>
+        </div>
+        <div class="modal-body" id="contenidoVerUsuario">
+            <div class="loading">Cargando...</div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Editar Usuario -->
+<div id="modalEditarUsuario" class="modal">
+    <div class="modal-content modal-large">
+        <div class="modal-header">
+            <h2><i class="fas fa-edit"></i> Editar Usuario</h2>
+            <span class="modal-close" onclick="cerrarModal('modalEditarUsuario')">&times;</span>
+        </div>
+        <div class="modal-body" id="contenidoEditarUsuario">
+            <div class="loading">Cargando...</div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Confirmar Eliminación -->
+<div id="modalEliminar" class="modal">
+    <div class="modal-content modal-small">
+        <div class="modal-header modal-header-danger">
+            <h2><i class="fas fa-exclamation-triangle"></i> Confirmar Eliminación</h2>
+            <span class="modal-close" onclick="cerrarModal('modalEliminar')">&times;</span>
+        </div>
+        <div class="modal-body">
+            <p class="modal-text-center">¿Está seguro de que desea eliminar al usuario <strong id="usuarioEliminar"></strong>?</p>
+            <p class="modal-text-muted">Esta acción marcará la cuenta como inactiva.</p>
+            <div class="modal-actions">
+                <button onclick="cerrarModal('modalEliminar')" class="btn btn-secondary">Cancelar</button>
+                <button onclick="eliminarUsuario()" class="btn btn-danger">Eliminar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Activar Usuario -->
+<div id="modalActivar" class="modal">
+    <div class="modal-content modal-small">
+        <div class="modal-header modal-header-success">
+            <h2><i class="fas fa-check-circle"></i> Confirmar Activación</h2>
+            <span class="modal-close" onclick="cerrarModal('modalActivar')">&times;</span>
+        </div>
+        <div class="modal-body">
+            <p class="modal-text-center">¿Está seguro de que desea activar este usuario?</p>
+            <div class="modal-actions">
+                <button onclick="cerrarModal('modalActivar')" class="btn btn-secondary">Cancelar</button>
+                <button onclick="confirmarActivar()" class="btn btn-success">Activar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let usuarioIdEliminar = null;
+let usuarioIdActivar = null;
+
+// Abrir y cerrar modales
+function abrirModal(modalId) {
+    document.getElementById(modalId).style.display = 'block';
+    document.body.style.overflow = 'hidden';
+}
+
+function cerrarModal(modalId) {
+    document.getElementById(modalId).style.display = 'none';
+    document.body.style.overflow = 'auto';
+}
+
+// Cerrar modal al hacer clic fuera
+window.onclick = function(event) {
+    if (event.target.classList.contains('modal')) {
+        event.target.style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
+}
+
+// Ver usuario
+function verUsuario(id) {
+    abrirModal('modalVerUsuario');
+    fetch(`/usuarios/perfil/${id}/ajax/`)
+        .then(response => response.text())
+        .then(html => {
+            document.getElementById('contenidoVerUsuario').innerHTML = html;
+        })
+        .catch(error => {
+            document.getElementById('contenidoVerUsuario').innerHTML = 
+                '<p class="error-message">Error al cargar la información del usuario.</p>';
+        });
+}
+
+// Editar usuario
+function editarUsuario(id) {
+    abrirModal('modalEditarUsuario');
+    fetch(`/usuarios/modificar/${id}/ajax/`)
+        .then(response => response.text())
+        .then(html => {
+            document.getElementById('contenidoEditarUsuario').innerHTML = html;
+            // Inicializar eventos del formulario
+            inicializarFormularioEditar();
+        })
+        .catch(error => {
+            document.getElementById('contenidoEditarUsuario').innerHTML = 
+                '<p class="error-message">Error al cargar el formulario de edición.</p>';
+        });
+}
+
+// Confirmar eliminar
+function confirmarEliminar(id, username) {
+    usuarioIdEliminar = id;
+    document.getElementById('usuarioEliminar').textContent = username;
+    abrirModal('modalEliminar');
+}
+
+// Eliminar usuario
+function eliminarUsuario() {
+    if (!usuarioIdEliminar) return;
+    
+    fetch(`/usuarios/eliminar/${usuarioIdEliminar}/ajax/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            cerrarModal('modalEliminar');
+            location.reload();
+        } else {
+            alert(data.message || 'Error al eliminar el usuario');
+        }
+    })
+    .catch(error => {
+        alert('Error al procesar la solicitud');
+    });
+}
+
+// Activar usuario
+function activarUsuario(id) {
+    usuarioIdActivar = id;
+    abrirModal('modalActivar');
+}
+
+function confirmarActivar() {
+    if (!usuarioIdActivar) return;
+    
+    fetch(`/usuarios/activar/${usuarioIdActivar}/ajax/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            cerrarModal('modalActivar');
+            location.reload();
+        } else {
+            alert(data.message || 'Error al activar el usuario');
+        }
+    })
+    .catch(error => {
+        alert('Error al procesar la solicitud');
+    });
+}
+
+// Función para obtener el token CSRF
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// Inicializar formulario de edición
+function inicializarFormularioEditar() {
+    const form = document.getElementById('formEditarUsuario');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(form);
+            const usuarioId = form.dataset.usuarioId;
+            
+            fetch(`/usuarios/modificar/${usuarioId}/ajax/`, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    cerrarModal('modalEditarUsuario');
+                    location.reload();
+                } else {
+                    // Mostrar errores del formulario
+                    if (data.errors) {
+                        mostrarErroresFormulario(data.errors);
+                    }
+                }
+            })
+            .catch(error => {
+                alert('Error al procesar la solicitud');
+            });
+        });
+    }
+}
+
+function mostrarErroresFormulario(errors) {
+    // Limpiar errores anteriores
+    document.querySelectorAll('.field-error').forEach(el => el.remove());
+    
+    // Mostrar nuevos errores
+    for (let field in errors) {
+        const input = document.querySelector(`[name="${field}"]`);
+        if (input) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'field-error';
+            errorDiv.textContent = errors[field].join(', ');
+            input.parentNode.appendChild(errorDiv);
+        }
+    }
+}
+</script>
 
 {% endblock %}

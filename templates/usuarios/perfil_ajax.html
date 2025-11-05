@@ -1,0 +1,179 @@
+<div class="perfil-modal-container">
+    <div class="perfil-modal-header">
+        {% if usuario.foto_perfil %}
+            <img src="{{ usuario.foto_perfil.url }}" alt="{{ usuario.get_full_name }}" class="perfil-modal-foto">
+        {% else %}
+            <div class="perfil-modal-foto-placeholder">
+                {{ usuario.first_name.0 }}{{ usuario.last_name.0 }}
+            </div>
+        {% endif %}
+        
+        <div class="perfil-modal-info">
+            <h3>{{ usuario.get_full_name }}</h3>
+            <p>
+                {% if usuario.rol == 'administrador' %}
+                    <span class="badge badge-danger"><i class="fas fa-shield-alt"></i> Administrador</span>
+                {% elif usuario.rol == 'profesional' %}
+                    <span class="badge badge-info"><i class="fas fa-briefcase"></i> Profesional</span>
+                {% else %}
+                    <span class="badge badge-success"><i class="fas fa-user"></i> Cliente</span>
+                {% endif %}
+            </p>
+            <p><i class="fas fa-at"></i> {{ usuario.username }}</p>
+            <p><i class="fas fa-envelope"></i> {{ usuario.email }}</p>
+            {% if usuario.telefono %}
+                <p><i class="fas fa-phone"></i> {{ usuario.telefono }}</p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="perfil-modal-detalles">
+        <div class="perfil-modal-item">
+            <strong><i class="fas fa-calendar-plus"></i> Fecha de Registro</strong>
+            <span>{{ usuario.fecha_registro|date:"d/m/Y H:i" }}</span>
+        </div>
+        
+        <div class="perfil-modal-item">
+            <strong><i class="fas fa-calendar-check"></i> Última Modificación</strong>
+            <span>{{ usuario.fecha_modificacion|date:"d/m/Y H:i" }}</span>
+        </div>
+        
+        <div class="perfil-modal-item">
+            <strong><i class="fas fa-toggle-on"></i> Estado</strong>
+            <span>
+                {% if usuario.activo %}
+                    <span class="badge badge-success">✓ Activo</span>
+                {% else %}
+                    <span class="badge badge-danger">✗ Inactivo</span>
+                {% endif %}
+            </span>
+        </div>
+        
+        {% if usuario.fecha_eliminacion %}
+        <div class="perfil-modal-item">
+            <strong><i class="fas fa-calendar-times"></i> Fecha de Eliminación</strong>
+            <span>{{ usuario.fecha_eliminacion|date:"d/m/Y H:i" }}</span>
+        </div>
+        {% endif %}
+        
+        {% if usuario.direccion %}
+        <div class="perfil-modal-item">
+            <strong><i class="fas fa-map-marker-alt"></i> Dirección</strong>
+            <span>{{ usuario.direccion }}</span>
+        </div>
+        {% endif %}
+    </div>
+    
+    {% if usuario.is_profesional and perfil %}
+    <div style="margin-top: 30px;">
+        <h4 style="color: #667eea; margin-bottom: 15px;">
+            <i class="fas fa-briefcase"></i> Información Profesional
+        </h4>
+        
+        <div class="perfil-modal-detalles">
+            <div class="perfil-modal-item">
+                <strong><i class="fas fa-clock"></i> Años de Experiencia</strong>
+                <span>{{ perfil.anios_experiencia }} años</span>
+            </div>
+            
+            <div class="perfil-modal-item">
+                <strong><i class="fas fa-star"></i> Calificación Promedio</strong>
+                <span>
+                    {% if calificacion_promedio %}
+                        {{ calificacion_promedio }}/5.0 ⭐
+                    {% else %}
+                        Sin calificaciones
+                    {% endif %}
+                </span>
+            </div>
+            
+            <div class="perfil-modal-item">
+                <strong><i class="fas fa-tasks"></i> Turnos Completados</strong>
+                <span>{{ turnos_completados }} de {{ total_turnos }}</span>
+            </div>
+            
+            <div class="perfil-modal-item">
+                <strong><i class="fas fa-toggle-on"></i> Disponibilidad</strong>
+                <span>
+                    {% if perfil.disponible %}
+                        <span class="badge badge-success">Disponible</span>
+                    {% else %}
+                        <span class="badge badge-danger">No disponible</span>
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+        
+        {% if servicios_ofrecidos %}
+        <div style="margin-top: 20px;">
+            <h5 style="color: #333; margin-bottom: 10px;">
+                <i class="fas fa-list"></i> Servicios que Ofrece:
+            </h5>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px;">
+                {% for servicio in servicios_ofrecidos %}
+                <div style="padding: 10px; background: #f8f9fa; border-left: 4px solid #667eea; border-radius: 4px;">
+                    <strong>{{ servicio.categoria.nombre }}</strong><br>
+                    <span style="color: #666;">{{ servicio.nombre }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% else %}
+        <p style="color: #666; font-style: italic; margin-top: 15px;">
+            <i class="fas fa-info-circle"></i> No tiene servicios asignados
+        </p>
+        {% endif %}
+    </div>
+    {% endif %}
+    
+    {% if usuario.is_cliente and perfil %}
+    <div style="margin-top: 30px;">
+        <h4 style="color: #667eea; margin-bottom: 15px;">
+            <i class="fas fa-user"></i> Información del Cliente
+        </h4>
+        
+        <div class="perfil-modal-detalles">
+            <div class="perfil-modal-item">
+                <strong><i class="fas fa-tasks"></i> Turnos Realizados</strong>
+                <span>{{ total_turnos }} turnos ({{ turnos_completados }} completados)</span>
+            </div>
+            
+            {% if perfil.preferencias %}
+            <div class="perfil-modal-item">
+                <strong><i class="fas fa-heart"></i> Preferencias</strong>
+                <span>{{ perfil.preferencias }}</span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.badge {
+    display: inline-block;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.badge-danger {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+}
+
+.badge-info {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    color: white;
+}
+
+.badge-success {
+    background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+    color: white;
+}
+
+.badge i {
+    margin-right: 5px;
+}
+</style>

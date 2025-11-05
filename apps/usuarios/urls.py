@@ -34,6 +34,12 @@ urlpatterns = [
     # Vistas adicionales
     path('perfil/<int:id>/', views.perfil_usuario, name='perfil'),
     
+    # Vistas AJAX para modales
+    path('perfil/<int:id>/ajax/', views.perfil_usuario_ajax, name='perfil_ajax'),
+    path('modificar/<int:id>/ajax/', views.modificar_usuario_ajax, name='modificar_usuario_ajax'),
+    path('eliminar/<int:id>/ajax/', views.eliminar_usuario_ajax, name='eliminar_usuario_ajax'),
+    path('activar/<int:id>/ajax/', views.activar_usuario_ajax, name='activar_usuario_ajax'),
+    
     # Dashboards
     path('dashboard/cliente/', views.dashboard_cliente, name='dashboard_cliente'),
     path('dashboard/profesional/', views.dashboard_profesional, name='dashboard_profesional'),

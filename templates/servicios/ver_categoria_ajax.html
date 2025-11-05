@@ -1,0 +1,159 @@
+{% load static %}
+
+<div class="info-cards">
+    <div class="info-card">
+        <div class="info-label">Nombre de la Categoría</div>
+        <div class="info-value">{{ categoria.nombre }}</div>
+    </div>
+    
+    <div class="info-card">
+        <div class="info-label">Estado</div>
+        <div class="info-value">
+            {% if categoria.activo %}
+                <span class="badge badge-success">
+                    <i class="fas fa-check-circle"></i> Activa
+                </span>
+            {% else %}
+                <span class="badge badge-danger">
+                    <i class="fas fa-times-circle"></i> Inactiva
+                </span>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="info-card">
+    <div class="info-label">Descripción</div>
+    <div class="info-value">{{ categoria.descripcion|linebreaks }}</div>
+</div>
+
+<div class="info-card">
+    <div class="info-label">Servicios Asociados</div>
+    <div class="info-value">
+        <span class="badge badge-info service-count">
+            <i class="fas fa-cog"></i> {{ categoria.servicio_set.count }} servicio{{ categoria.servicio_set.count|pluralize }}
+        </span>
+    </div>
+</div>
+
+{% if categoria.servicio_set.exists %}
+<div class="info-card">
+    <div class="info-label">Lista de Servicios</div>
+    <div class="info-value">
+        <ul class="services-list">
+            {% for servicio in categoria.servicio_set.all %}
+            <li>
+                <i class="fas fa-cog"></i> {{ servicio.nombre }}
+                {% if not servicio.activo %}
+                    <span class="badge badge-secondary badge-small">Inactivo</span>
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endif %}
+
+<div class="info-cards">
+    <div class="info-card">
+        <div class="info-label">Fecha de Creación</div>
+        <div class="info-value">{{ categoria.fecha_creacion|date:"d/m/Y H:i" }}</div>
+    </div>
+    
+    <div class="info-card">
+        <div class="info-label">Última Modificación</div>
+        <div class="info-value">{{ categoria.fecha_actualizacion|date:"d/m/Y H:i" }}</div>
+    </div>
+</div>
+
+<style>
+.info-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.info-card {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    padding: 15px;
+    border-radius: 8px;
+    border-left: 4px solid #007bff;
+}
+
+.info-label {
+    font-size: 0.875rem;
+    color: #6c757d;
+    margin-bottom: 5px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.info-value {
+    font-size: 1rem;
+    color: #212529;
+    font-weight: 500;
+}
+
+.badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.badge-success {
+    background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+    color: white;
+}
+
+.badge-danger {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    color: white;
+}
+
+.badge-info {
+    background: linear-gradient(135deg, #17a2b8 0%, #117a8b 100%);
+    color: white;
+}
+
+.badge-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.badge-small {
+    padding: 3px 8px;
+    font-size: 0.75rem;
+    margin-left: 5px;
+}
+
+.service-count {
+    font-size: 1.1rem;
+    padding: 8px 16px;
+}
+
+.services-list {
+    list-style: none;
+    padding: 0;
+    margin: 10px 0 0 0;
+}
+
+.services-list li {
+    padding: 8px 12px;
+    margin-bottom: 8px;
+    background: white;
+    border-radius: 4px;
+    border-left: 3px solid #007bff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.services-list li i {
+    color: #007bff;
+    margin-right: 8px;
+}
+</style>

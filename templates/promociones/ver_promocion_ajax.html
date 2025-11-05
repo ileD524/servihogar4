@@ -1,0 +1,140 @@
+<div class="promo-detail-header" style="text-align: center; margin-bottom: 30px;">
+    <h3 style="color: #667eea; margin-bottom: 10px;">{{ promocion.titulo }}</h3>
+    <p style="color: #666;">{{ promocion.descripcion }}</p>
+</div>
+
+<div class="promo-detail-grid">
+    <div class="promo-detail-item">
+        <strong><i class="fas fa-tag"></i> Código</strong>
+        <span>{{ promocion.codigo }}</span>
+    </div>
+    
+    <div class="promo-detail-item">
+        <strong><i class="fas fa-percentage"></i> Tipo de Descuento</strong>
+        <span>
+            {% if promocion.tipo_descuento == 'porcentaje' %}
+                <span class="badge badge-porcentaje">
+                    <i class="fas fa-percent"></i> Porcentaje
+                </span>
+            {% else %}
+                <span class="badge badge-monto">
+                    <i class="fas fa-dollar-sign"></i> Monto Fijo
+                </span>
+            {% endif %}
+        </span>
+    </div>
+    
+    <div class="promo-detail-item">
+        <strong><i class="fas fa-gift"></i> Valor del Descuento</strong>
+        <span style="font-size: 1.5rem; color: #667eea; font-weight: bold;">
+            {% if promocion.tipo_descuento == 'porcentaje' %}
+                {{ promocion.valor_descuento }}%
+            {% else %}
+                ${{ promocion.valor_descuento }}
+            {% endif %}
+        </span>
+    </div>
+    
+    <div class="promo-detail-item">
+        <strong><i class="fas fa-folder"></i> Categoría</strong>
+        <span>{{ promocion.categoria.nombre }}</span>
+    </div>
+    
+    <div class="promo-detail-item">
+        <strong><i class="fas fa-calendar-alt"></i> Fecha de Inicio</strong>
+        <span>{{ promocion.fecha_inicio|date:"d/m/Y" }}</span>
+    </div>
+    
+    <div class="promo-detail-item">
+        <strong><i class="fas fa-calendar-check"></i> Fecha de Fin</strong>
+        <span>{{ promocion.fecha_fin|date:"d/m/Y" }}</span>
+    </div>
+    
+    <div class="promo-detail-item">
+        <strong><i class="fas fa-toggle-on"></i> Estado</strong>
+        <span>
+            {% if promocion.activa %}
+                <span class="badge badge-success">✓ Activa</span>
+            {% else %}
+                <span class="badge badge-danger">✗ Inactiva</span>
+            {% endif %}
+        </span>
+    </div>
+    
+    <div class="promo-detail-item">
+        <strong><i class="fas fa-clock"></i> Vigencia</strong>
+        <span>
+            {% if promocion.esta_vigente %}
+                <span class="badge badge-info">Vigente</span>
+            {% else %}
+                <span class="badge badge-secondary">No vigente</span>
+            {% endif %}
+        </span>
+    </div>
+    
+    <div class="promo-detail-item">
+        <strong><i class="fas fa-calendar-plus"></i> Fecha de Creación</strong>
+        <span>{{ promocion.fecha_creacion|date:"d/m/Y H:i" }}</span>
+    </div>
+    
+    <div class="promo-detail-item">
+        <strong><i class="fas fa-calendar-edit"></i> Última Modificación</strong>
+        <span>{{ promocion.fecha_modificacion|date:"d/m/Y H:i" }}</span>
+    </div>
+</div>
+
+{% if promocion.servicios.all %}
+<div style="margin-top: 30px;">
+    <h4 style="color: #667eea; margin-bottom: 15px;">
+        <i class="fas fa-list"></i> Servicios Incluidos
+    </h4>
+    <div class="promo-servicios-list">
+        {% for servicio in promocion.servicios.all %}
+        <div class="promo-servicio-card">
+            <strong>{{ servicio.categoria.nombre }}</strong><br>
+            <span style="color: #666;">{{ servicio.nombre }}</span>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<style>
+.badge {
+    display: inline-block;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.badge-success {
+    background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+    color: white;
+}
+
+.badge-danger {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+}
+
+.badge-info {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    color: white;
+}
+
+.badge-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.badge-porcentaje {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.badge-monto {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+}
+</style>

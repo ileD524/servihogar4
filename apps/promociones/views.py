@@ -108,3 +108,73 @@ def promociones_vigentes(request):
     ).order_by('-fecha_creacion')
     
     return render(request, 'promociones/promociones_vigentes.html', {'promociones': promociones})
+
+
+# ==================== VISTAS AJAX PARA MODALES ====================
+
+@user_passes_test(es_administrador)
+def ver_promocion_ajax(request, id):
+    """Vista AJAX para ver detalle de promoción en modal"""
+    from django.http import JsonResponse
+    promocion = get_object_or_404(Promocion, id=id)
+    
+    context = {
+        'promocion': promocion,
+        'is_ajax': True
+    }
+    
+    return render(request, 'promociones/ver_promocion_ajax.html', context)
+
+
+@user_passes_test(es_administrador)
+def modificar_promocion_ajax(request, id):
+    """Vista AJAX para modificar promoción en modal"""
+    from django.http import JsonResponse
+    promocion = get_object_or_404(Promocion, id=id)
+    
+    if request.method == 'POST':
+        form = PromocionForm(request.POST, instance=promocion)
+        if form.is_valid():
+            form.save()
+            return JsonResponse({
+                'success': True,
+                'message': 'Promoción actualizada correctamente'
+            })
+        else:
+            return JsonResponse({
+                'success': False,
+                'errors': form.errors
+            })
+    else:
+        form = PromocionForm(instance=promocion)
+        context = {
+            'form': form,
+            'promocion': promocion,
+            'is_ajax': True
+        }
+        return render(request, 'promociones/modificar_promocion_ajax.html', context)
+
+
+@user_passes_test(es_administrador)
+def eliminar_promocion_ajax(request, id):
+    """Vista AJAX para eliminar promoción"""
+    from django.http import JsonResponse
+    
+    if request.method == 'POST':
+        promocion = get_object_or_404(Promocion, id=id)
+        
+        try:
+            promocion.activa = False
+            promocion.save()
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Promoción eliminada correctamente'
+            })
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': f'Error al eliminar promoción: {str(e)}'
+            })
+    
+    return JsonResponse({'success': False, 'message': 'Método no permitido'})

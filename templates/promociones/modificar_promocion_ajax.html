@@ -1,0 +1,196 @@
+<form id="formEditarPromocion" method="post" data-promocion-id="{{ promocion.id }}">
+    {% csrf_token %}
+    
+    <div class="form-grid">
+        <!-- Información Básica -->
+        <div class="form-section">
+            <h4 class="form-section-title"><i class="fas fa-info-circle"></i> Información Básica</h4>
+            
+            <div class="form-group">
+                <label for="id_titulo">Título *</label>
+                {{ form.titulo }}
+                {% if form.titulo.errors %}
+                    <div class="field-error">{{ form.titulo.errors.0 }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label for="id_descripcion">Descripción *</label>
+                {{ form.descripcion }}
+                {% if form.descripcion.errors %}
+                    <div class="field-error">{{ form.descripcion.errors.0 }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label for="id_codigo">Código</label>
+                {{ form.codigo }}
+                {% if form.codigo.errors %}
+                    <div class="field-error">{{ form.codigo.errors.0 }}</div>
+                {% endif %}
+                <small style="color: #666; display: block; margin-top: 5px;">
+                    Código único para identificar la promoción
+                </small>
+            </div>
+        </div>
+        
+        <!-- Descuento -->
+        <div class="form-section">
+            <h4 class="form-section-title"><i class="fas fa-tag"></i> Descuento</h4>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="id_tipo_descuento">Tipo de Descuento *</label>
+                    {{ form.tipo_descuento }}
+                    {% if form.tipo_descuento.errors %}
+                        <div class="field-error">{{ form.tipo_descuento.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="form-group">
+                    <label for="id_valor_descuento">Valor del Descuento *</label>
+                    {{ form.valor_descuento }}
+                    {% if form.valor_descuento.errors %}
+                        <div class="field-error">{{ form.valor_descuento.errors.0 }}</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Categoría y Servicios -->
+        <div class="form-section">
+            <h4 class="form-section-title"><i class="fas fa-list"></i> Categoría y Servicios</h4>
+            
+            <div class="form-group">
+                <label for="id_categoria">Categoría *</label>
+                {{ form.categoria }}
+                {% if form.categoria.errors %}
+                    <div class="field-error">{{ form.categoria.errors.0 }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label for="id_servicios">Servicios Incluidos</label>
+                <div style="max-height: 200px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 4px;">
+                    {{ form.servicios }}
+                </div>
+                {% if form.servicios.errors %}
+                    <div class="field-error">{{ form.servicios.errors.0 }}</div>
+                {% endif %}
+                <small style="color: #666; display: block; margin-top: 5px;">
+                    Mantén presionada la tecla Ctrl (Cmd en Mac) para seleccionar múltiples servicios
+                </small>
+            </div>
+        </div>
+        
+        <!-- Vigencia -->
+        <div class="form-section">
+            <h4 class="form-section-title"><i class="fas fa-calendar"></i> Vigencia</h4>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="id_fecha_inicio">Fecha de Inicio *</label>
+                    {{ form.fecha_inicio }}
+                    {% if form.fecha_inicio.errors %}
+                        <div class="field-error">{{ form.fecha_inicio.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="form-group">
+                    <label for="id_fecha_fin">Fecha de Fin *</label>
+                    {{ form.fecha_fin }}
+                    {% if form.fecha_fin.errors %}
+                        <div class="field-error">{{ form.fecha_fin.errors.0 }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="id_activa">
+                    <input type="checkbox" name="activa" id="id_activa" {% if promocion.activa %}checked{% endif %}>
+                    Promoción Activa
+                </label>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal-actions" style="margin-top: 30px;">
+        <button type="button" onclick="cerrarModal('modalEditarPromocion')" class="btn btn-secondary">
+            <i class="fas fa-times"></i> Cancelar
+        </button>
+        <button type="submit" class="btn btn-primary">
+            <i class="fas fa-save"></i> Guardar Cambios
+        </button>
+    </div>
+</form>
+
+<style>
+.form-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+.form-section {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    border-left: 4px solid #667eea;
+}
+
+.form-section-title {
+    color: #667eea;
+    margin: 0 0 15px 0;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    font-weight: 500;
+    margin-bottom: 5px;
+    color: #333;
+}
+
+.form-group input[type="text"],
+.form-group input[type="number"],
+.form-group input[type="date"],
+.form-group input[type="datetime-local"],
+.form-group select,
+.form-group textarea {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 0.95rem;
+    transition: border-color 0.3s;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+select[multiple] {
+    min-height: 150px;
+}
+</style>

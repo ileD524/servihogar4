@@ -436,3 +436,207 @@ def ver_categoria(request, id):
     servicios = Servicio.objects.filter(categoria=categoria).select_related('profesional__usuario')
     return render(request, 'servicios/ver_categoria.html', {'categoria': categoria, 'servicios': servicios})
 
+
+# ==================== VISTAS AJAX PARA MODALES - SERVICIOS ====================
+
+@user_passes_test(es_administrador)
+def ver_servicio_ajax(request, id):
+    """Vista AJAX para ver detalle de servicio en modal"""
+    from django.http import JsonResponse
+    servicio = get_object_or_404(Servicio, id=id)
+    
+    context = {
+        'servicio': servicio,
+        'is_ajax': True
+    }
+    
+    return render(request, 'servicios/ver_servicio_ajax.html', context)
+
+
+@user_passes_test(es_administrador)
+def modificar_servicio_ajax(request, id):
+    """Vista AJAX para modificar servicio en modal"""
+    from django.http import JsonResponse
+    servicio = get_object_or_404(Servicio, id=id)
+    
+    if request.method == 'POST':
+        form = ServicioForm(request.POST, instance=servicio)
+        if form.is_valid():
+            form.save()
+            return JsonResponse({
+                'success': True,
+                'message': 'Servicio actualizado correctamente'
+            })
+        else:
+            return JsonResponse({
+                'success': False,
+                'errors': form.errors
+            })
+    else:
+        form = ServicioForm(instance=servicio)
+        context = {
+            'form': form,
+            'servicio': servicio,
+            'is_ajax': True
+        }
+        return render(request, 'servicios/modificar_servicio_ajax.html', context)
+
+
+@user_passes_test(es_administrador)
+def eliminar_servicio_ajax(request, id):
+    """Vista AJAX para eliminar servicio"""
+    from django.http import JsonResponse
+    
+    if request.method == 'POST':
+        servicio = get_object_or_404(Servicio, id=id)
+        
+        try:
+            from django.utils import timezone
+            servicio.activo = False
+            servicio.fecha_eliminacion = timezone.now()
+            servicio.save()
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Servicio eliminado correctamente'
+            })
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': f'Error al eliminar servicio: {str(e)}'
+            })
+    
+    return JsonResponse({'success': False, 'message': 'Método no permitido'})
+
+
+@user_passes_test(es_administrador)
+def activar_servicio_ajax(request, id):
+    """Vista AJAX para activar servicio"""
+    from django.http import JsonResponse
+    
+    if request.method == 'POST':
+        servicio = get_object_or_404(Servicio, id=id)
+        
+        try:
+            servicio.activo = True
+            servicio.fecha_eliminacion = None
+            servicio.save()
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Servicio activado correctamente'
+            })
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': f'Error al activar servicio: {str(e)}'
+            })
+    
+    return JsonResponse({'success': False, 'message': 'Método no permitido'})
+
+
+# ==================== VISTAS AJAX PARA MODALES - CATEGORÍAS ====================
+
+@user_passes_test(es_administrador)
+def ver_categoria_ajax(request, id):
+    """Vista AJAX para ver detalle de categoría en modal"""
+    from django.http import JsonResponse
+    categoria = get_object_or_404(Categoria, id=id)
+    servicios = Servicio.objects.filter(categoria=categoria)
+    
+    context = {
+        'categoria': categoria,
+        'servicios': servicios,
+        'is_ajax': True
+    }
+    
+    return render(request, 'servicios/ver_categoria_ajax.html', context)
+
+
+@user_passes_test(es_administrador)
+def modificar_categoria_ajax(request, id):
+    """Vista AJAX para modificar categoría en modal"""
+    from django.http import JsonResponse
+    categoria = get_object_or_404(Categoria, id=id)
+    
+    if request.method == 'POST':
+        form = CategoriaForm(request.POST, instance=categoria)
+        if form.is_valid():
+            form.save()
+            return JsonResponse({
+                'success': True,
+                'message': 'Categoría actualizada correctamente'
+            })
+        else:
+            return JsonResponse({
+                'success': False,
+                'errors': form.errors
+            })
+    else:
+        form = CategoriaForm(instance=categoria)
+        context = {
+            'form': form,
+            'categoria': categoria,
+            'is_ajax': True
+        }
+        return render(request, 'servicios/modificar_categoria_ajax.html', context)
+
+
+@user_passes_test(es_administrador)
+def eliminar_categoria_ajax(request, id):
+    """Vista AJAX para eliminar categoría"""
+    from django.http import JsonResponse
+    
+    if request.method == 'POST':
+        categoria = get_object_or_404(Categoria, id=id)
+        
+        # Verificar si tiene servicios asociados
+        if categoria.servicios.exists():
+            return JsonResponse({
+                'success': False,
+                'message': 'No se puede eliminar una categoría que tiene servicios asociados'
+            })
+        
+        try:
+            from django.utils import timezone
+            categoria.activa = False
+            categoria.fecha_eliminacion = timezone.now()
+            categoria.save()
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Categoría eliminada correctamente'
+            })
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': f'Error al eliminar categoría: {str(e)}'
+            })
+    
+    return JsonResponse({'success': False, 'message': 'Método no permitido'})
+
+
+@user_passes_test(es_administrador)
+def activar_categoria_ajax(request, id):
+    """Vista AJAX para activar categoría"""
+    from django.http import JsonResponse
+    
+    if request.method == 'POST':
+        categoria = get_object_or_404(Categoria, id=id)
+        
+        try:
+            categoria.activa = True
+            categoria.fecha_eliminacion = None
+            categoria.save()
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Categoría activada correctamente'
+            })
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': f'Error al activar categoría: {str(e)}'
+            })
+    
+    return JsonResponse({'success': False, 'message': 'Método no permitido'})

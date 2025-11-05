@@ -5,6 +5,7 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/gestion-comun.css' %}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 {% endblock %}
 
 {% block content %}
@@ -158,11 +159,20 @@
                         </td>
                         <td>
                             <div class="acciones-btns">
-                                <a href="{% url 'servicios:modificar_servicio' servicio.id %}" class="btn btn-sm btn-primary" title="Editar">Editar</a>
+                                <button onclick="verServicio({{ servicio.id }})" class="btn btn-sm btn-icon" title="Ver">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button onclick="editarServicio({{ servicio.id }})" class="btn btn-sm btn-icon btn-primary" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </button>
                                 {% if servicio.activo %}
-                                    <a href="{% url 'servicios:eliminar_servicio' servicio.id %}" class="btn btn-sm btn-danger" title="Eliminar">Eliminar</a>
+                                    <button onclick="confirmarEliminarServicio({{ servicio.id }}, '{{ servicio.nombre|escapejs }}')" class="btn btn-sm btn-icon btn-danger" title="Eliminar">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
                                 {% else %}
-                                    <a href="{% url 'servicios:activar_servicio' servicio.id %}" class="btn btn-sm btn-success" title="Activar">Activar</a>
+                                    <button onclick="activarServicio({{ servicio.id }})" class="btn btn-sm btn-icon btn-success" title="Activar">
+                                        <i class="fas fa-check"></i>
+                                    </button>
                                 {% endif %}
                             </div>
                         </td>
@@ -581,14 +591,404 @@
         flex-direction: column;
     }
 }
+
+/* Estilos para botones con iconos */
+.btn-icon {
+    padding: 6px 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 14px;
+}
+
+.btn-icon i {
+    margin: 0;
+}
+
+.btn-icon:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+/* Estilos para modales */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.5);
+    animation: fadeIn 0.3s;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 3% auto;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    animation: slideDown 0.3s;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+@keyframes slideDown {
+    from {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.modal-small {
+    width: 90%;
+    max-width: 500px;
+}
+
+.modal-large {
+    width: 90%;
+    max-width: 900px;
+}
+
+.modal-header {
+    padding: 20px 30px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 8px 8px 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header-danger {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.modal-header-success {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.modal-close {
+    color: white;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.modal-close:hover,
+.modal-close:focus {
+    transform: scale(1.2);
+}
+
+.modal-body {
+    padding: 30px;
+}
+
+.modal-text-center {
+    text-align: center;
+    font-size: 1.1rem;
+    margin-bottom: 15px;
+}
+
+.modal-text-muted {
+    text-align: center;
+    color: #666;
+    font-size: 0.9rem;
+    margin-bottom: 25px;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.loading {
+    text-align: center;
+    padding: 40px;
+    color: #666;
+    font-size: 1.1rem;
+}
+
+.error-message {
+    text-align: center;
+    color: #f5576c;
+    padding: 20px;
+    font-size: 1rem;
+}
+
+.field-error {
+    color: #f5576c;
+    font-size: 0.85rem;
+    margin-top: 5px;
+}
 </style>
 
+<!-- Modal Ver Servicio -->
+<div id="modalVerServicio" class="modal">
+    <div class="modal-content modal-large">
+        <div class="modal-header">
+            <h2><i class="fas fa-concierge-bell"></i> Detalle del Servicio</h2>
+            <span class="modal-close" onclick="cerrarModal('modalVerServicio')">&times;</span>
+        </div>
+        <div class="modal-body" id="contenidoVerServicio">
+            <div class="loading">Cargando...</div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Editar Servicio -->
+<div id="modalEditarServicio" class="modal">
+    <div class="modal-content modal-large">
+        <div class="modal-header">
+            <h2><i class="fas fa-edit"></i> Editar Servicio</h2>
+            <span class="modal-close" onclick="cerrarModal('modalEditarServicio')">&times;</span>
+        </div>
+        <div class="modal-body" id="contenidoEditarServicio">
+            <div class="loading">Cargando...</div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Confirmar Eliminación Servicio -->
+<div id="modalEliminarServicio" class="modal">
+    <div class="modal-content modal-small">
+        <div class="modal-header modal-header-danger">
+            <h2><i class="fas fa-exclamation-triangle"></i> Confirmar Eliminación</h2>
+            <span class="modal-close" onclick="cerrarModal('modalEliminarServicio')">&times;</span>
+        </div>
+        <div class="modal-body">
+            <p class="modal-text-center">¿Está seguro de que desea eliminar el servicio <strong id="servicioEliminar"></strong>?</p>
+            <p class="modal-text-muted">Esta acción marcará el servicio como inactivo.</p>
+            <div class="modal-actions">
+                <button onclick="cerrarModal('modalEliminarServicio')" class="btn btn-secondary">Cancelar</button>
+                <button onclick="eliminarServicio()" class="btn btn-danger">Eliminar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Activar Servicio -->
+<div id="modalActivarServicio" class="modal">
+    <div class="modal-content modal-small">
+        <div class="modal-header modal-header-success">
+            <h2><i class="fas fa-check-circle"></i> Confirmar Activación</h2>
+            <span class="modal-close" onclick="cerrarModal('modalActivarServicio')">&times;</span>
+        </div>
+        <div class="modal-body">
+            <p class="modal-text-center">¿Está seguro de que desea activar este servicio?</p>
+            <div class="modal-actions">
+                <button onclick="cerrarModal('modalActivarServicio')" class="btn btn-secondary">Cancelar</button>
+                <button onclick="confirmarActivarServicio()" class="btn btn-success">Activar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
+let servicioIdEliminar = null;
+let servicioIdActivar = null;
+
 function cambiarItems(valor) {
     const url = new URL(window.location.href);
     url.searchParams.set('items', valor);
-    url.searchParams.delete('page'); // Reset a página 1
+    url.searchParams.delete('page');
     window.location.href = url.toString();
+}
+
+// Funciones de modales
+function abrirModal(modalId) {
+    document.getElementById(modalId).style.display = 'block';
+    document.body.style.overflow = 'hidden';
+}
+
+function cerrarModal(modalId) {
+    document.getElementById(modalId).style.display = 'none';
+    document.body.style.overflow = 'auto';
+}
+
+window.onclick = function(event) {
+    if (event.target.classList.contains('modal')) {
+        event.target.style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
+}
+
+// Ver servicio
+function verServicio(id) {
+    abrirModal('modalVerServicio');
+    fetch(`/servicios/ver/${id}/ajax/`)
+        .then(response => response.text())
+        .then(html => {
+            document.getElementById('contenidoVerServicio').innerHTML = html;
+        })
+        .catch(error => {
+            document.getElementById('contenidoVerServicio').innerHTML = 
+                '<p class="error-message">Error al cargar la información del servicio.</p>';
+        });
+}
+
+// Editar servicio
+function editarServicio(id) {
+    abrirModal('modalEditarServicio');
+    fetch(`/servicios/modificar/${id}/ajax/`)
+        .then(response => response.text())
+        .then(html => {
+            document.getElementById('contenidoEditarServicio').innerHTML = html;
+            inicializarFormularioEditarServicio();
+        })
+        .catch(error => {
+            document.getElementById('contenidoEditarServicio').innerHTML = 
+                '<p class="error-message">Error al cargar el formulario de edición.</p>';
+        });
+}
+
+// Confirmar eliminar
+function confirmarEliminarServicio(id, nombre) {
+    servicioIdEliminar = id;
+    document.getElementById('servicioEliminar').textContent = nombre;
+    abrirModal('modalEliminarServicio');
+}
+
+// Eliminar servicio
+function eliminarServicio() {
+    if (!servicioIdEliminar) return;
+    
+    fetch(`/servicios/eliminar/${servicioIdEliminar}/ajax/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            cerrarModal('modalEliminarServicio');
+            location.reload();
+        } else {
+            alert(data.message || 'Error al eliminar el servicio');
+        }
+    })
+    .catch(error => {
+        alert('Error al procesar la solicitud');
+    });
+}
+
+// Activar servicio
+function activarServicio(id) {
+    servicioIdActivar = id;
+    abrirModal('modalActivarServicio');
+}
+
+function confirmarActivarServicio() {
+    if (!servicioIdActivar) return;
+    
+    fetch(`/servicios/activar/${servicioIdActivar}/ajax/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            cerrarModal('modalActivarServicio');
+            location.reload();
+        } else {
+            alert(data.message || 'Error al activar el servicio');
+        }
+    })
+    .catch(error => {
+        alert('Error al procesar la solicitud');
+    });
+}
+
+// Función para obtener el token CSRF
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// Inicializar formulario de edición
+function inicializarFormularioEditarServicio() {
+    const form = document.getElementById('formEditarServicio');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(form);
+            const servicioId = form.dataset.servicioId;
+            
+            fetch(`/servicios/modificar/${servicioId}/ajax/`, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    cerrarModal('modalEditarServicio');
+                    location.reload();
+                } else {
+                    if (data.errors) {
+                        mostrarErroresFormulario(data.errors);
+                    }
+                }
+            })
+            .catch(error => {
+                alert('Error al procesar la solicitud');
+            });
+        });
+    }
+}
+
+function mostrarErroresFormulario(errors) {
+    document.querySelectorAll('.field-error').forEach(el => el.remove());
+    
+    for (let field in errors) {
+        const input = document.querySelector(`[name="${field}"]`);
+        if (input) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'field-error';
+            errorDiv.textContent = errors[field].join(', ');
+            input.parentNode.appendChild(errorDiv);
+        }
+    }
 }
 </script>
 {% endblock %}

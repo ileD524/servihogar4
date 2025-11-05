@@ -867,3 +867,204 @@ def confirmar_email(request, uidb64, token):
     except ValidationError as e:
         messages.error(request, str(e))
         return redirect('usuarios:login')
+
+
+# ==================== VISTAS AJAX PARA MODALES ====================
+
+@login_required
+@user_passes_test(es_administrador)
+def perfil_usuario_ajax(request, id):
+    """Vista AJAX para cargar el perfil de usuario en un modal"""
+    usuario = get_object_or_404(Usuario, id=id)
+    
+    context = {
+        'usuario': usuario,
+        'is_ajax': True
+    }
+    
+    # Agregar información específica según el rol
+    if usuario.is_profesional():
+        try:
+            perfil = usuario.perfil_profesional
+            from apps.turnos.models import Calificacion, Turno
+            
+            # Calcular calificación promedio
+            calificaciones = Calificacion.objects.filter(turno__profesional=perfil)
+            if calificaciones.exists():
+                from django.db.models import Avg
+                calificacion_promedio = calificaciones.aggregate(Avg('puntuacion'))['puntuacion__avg']
+                context['calificacion_promedio'] = round(calificacion_promedio, 2) if calificacion_promedio else 0
+            else:
+                context['calificacion_promedio'] = 0
+            
+            # Obtener servicios que ofrece
+            from apps.servicios.models import Servicio
+            context['servicios_ofrecidos'] = Servicio.objects.filter(profesionales=perfil)
+            context['perfil'] = perfil
+            
+            # Estadísticas adicionales
+            context['total_turnos'] = Turno.objects.filter(profesional=perfil).count()
+            context['turnos_completados'] = Turno.objects.filter(profesional=perfil, estado='completado').count()
+            
+        except:
+            pass
+    
+    elif usuario.is_cliente():
+        try:
+            perfil = usuario.perfil_cliente
+            context['perfil'] = perfil
+            
+            # Estadísticas del cliente
+            from apps.turnos.models import Turno
+            context['total_turnos'] = Turno.objects.filter(cliente=perfil).count()
+            context['turnos_completados'] = Turno.objects.filter(cliente=perfil, estado='completado').count()
+            
+        except:
+            pass
+    
+    return render(request, 'usuarios/perfil_ajax.html', context)
+
+
+@login_required
+@user_passes_test(es_administrador)
+def modificar_usuario_ajax(request, id):
+    """Vista AJAX para modificar usuario en un modal"""
+    usuario = get_object_or_404(Usuario, id=id)
+    
+    # El admin no puede modificar otros administradores
+    if usuario.is_administrador() and usuario.id != request.user.id:
+        return JsonResponse({'success': False, 'message': 'No puedes modificar otros administradores'})
+    
+    if request.method == 'POST':
+        form = ModificarUsuarioForm(request.POST, request.FILES, instance=usuario, editor_user=request.user)
+        if form.is_valid():
+            # Lógica de guardado (similar a la vista original)
+            estado_activo_original = usuario.activo
+            rol_original = usuario.rol
+            
+            usuario_actualizado = form.save(commit=False)
+            
+            if rol_original == 'administrador':
+                usuario_actualizado.activo = estado_activo_original
+                usuario_actualizado.rol = rol_original
+            
+            if rol_original != 'administrador' and usuario_actualizado.activo != estado_activo_original:
+                if usuario_actualizado.activo and usuario.fecha_eliminacion:
+                    usuario_actualizado.fecha_eliminacion = None
+                elif not usuario_actualizado.activo and not usuario.fecha_eliminacion:
+                    from django.utils import timezone
+                    usuario_actualizado.fecha_eliminacion = timezone.now()
+            
+            if rol_original != 'administrador':
+                from apps.usuarios.models import Cliente, Profesional
+                
+                if usuario_actualizado.rol == 'cliente':
+                    Cliente.objects.get_or_create(usuario=usuario_actualizado)
+                elif usuario_actualizado.rol == 'profesional':
+                    profesional, created = Profesional.objects.get_or_create(
+                        usuario=usuario_actualizado,
+                        defaults={'anios_experiencia': form.cleaned_data.get('anios_experiencia', 0)}
+                    )
+                    if not created and form.cleaned_data.get('anios_experiencia') is not None:
+                        profesional.anios_experiencia = form.cleaned_data.get('anios_experiencia', 0)
+                        profesional.save()
+            
+            usuario_actualizado.save()
+            
+            # Si es profesional, actualizar servicios
+            if usuario_actualizado.rol == 'profesional':
+                from apps.servicios.models import Servicio
+                profesional = usuario_actualizado.perfil_profesional
+                
+                servicios_seleccionados = form.cleaned_data.get('servicios', [])
+                for servicio in Servicio.objects.all():
+                    if servicio in servicios_seleccionados:
+                        servicio.profesionales.add(profesional)
+                    else:
+                        servicio.profesionales.remove(profesional)
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Usuario actualizado correctamente'
+            })
+        else:
+            return JsonResponse({
+                'success': False,
+                'errors': form.errors
+            })
+    
+    else:
+        form = ModificarUsuarioForm(instance=usuario, editor_user=request.user)
+        
+        # Si es profesional, preseleccionar servicios
+        if usuario.is_profesional():
+            from apps.servicios.models import Servicio
+            profesional = usuario.perfil_profesional
+            servicios_asignados = Servicio.objects.filter(profesionales=profesional)
+            form.fields['servicios'].initial = servicios_asignados
+        
+        context = {
+            'form': form,
+            'usuario': usuario,
+            'is_ajax': True
+        }
+        return render(request, 'usuarios/modificar_usuario_ajax.html', context)
+
+
+@login_required
+@user_passes_test(es_administrador)
+def eliminar_usuario_ajax(request, id):
+    """Vista AJAX para eliminar usuario"""
+    if request.method == 'POST':
+        usuario = get_object_or_404(Usuario, id=id)
+        
+        # No se puede eliminar a administradores
+        if usuario.is_administrador():
+            return JsonResponse({
+                'success': False,
+                'message': 'No se puede eliminar un administrador'
+            })
+        
+        try:
+            # Desactivar usuario
+            from django.utils import timezone
+            usuario.activo = False
+            usuario.fecha_eliminacion = timezone.now()
+            usuario.save()
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Usuario eliminado correctamente'
+            })
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': f'Error al eliminar usuario: {str(e)}'
+            })
+    
+    return JsonResponse({'success': False, 'message': 'Método no permitido'})
+
+
+@login_required
+@user_passes_test(es_administrador)
+def activar_usuario_ajax(request, id):
+    """Vista AJAX para activar usuario"""
+    if request.method == 'POST':
+        usuario = get_object_or_404(Usuario, id=id)
+        
+        try:
+            usuario.activo = True
+            usuario.fecha_eliminacion = None
+            usuario.save()
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Usuario activado correctamente'
+            })
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': f'Error al activar usuario: {str(e)}'
+            })
+    
+    return JsonResponse({'success': False, 'message': 'Método no permitido'})

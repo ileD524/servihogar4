@@ -20,4 +20,9 @@ urlpatterns = [
     path('ver/<int:id>/', views.ver_promocion, name='ver_promocion'),
     path('listar/', views.listar_promociones, name='listar_promociones'),
     path('vigentes/', views.promociones_vigentes, name='promociones_vigentes'),
+    
+    # Vistas AJAX para modales
+    path('ver/<int:id>/ajax/', views.ver_promocion_ajax, name='ver_promocion_ajax'),
+    path('modificar/<int:id>/ajax/', views.modificar_promocion_ajax, name='modificar_promocion_ajax'),
+    path('eliminar/<int:id>/ajax/', views.eliminar_promocion_ajax, name='eliminar_promocion_ajax'),
 ]

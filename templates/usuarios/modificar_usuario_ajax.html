@@ -1,0 +1,217 @@
+<form id="formEditarUsuario" method="post" enctype="multipart/form-data" data-usuario-id="{{ usuario.id }}">
+    {% csrf_token %}
+    
+    <div class="form-grid">
+        <!-- Información Básica -->
+        <div class="form-section">
+            <h4 class="form-section-title"><i class="fas fa-user"></i> Información Básica</h4>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="id_first_name">Nombre *</label>
+                    {{ form.first_name }}
+                    {% if form.first_name.errors %}
+                        <div class="field-error">{{ form.first_name.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="form-group">
+                    <label for="id_last_name">Apellido *</label>
+                    {{ form.last_name }}
+                    {% if form.last_name.errors %}
+                        <div class="field-error">{{ form.last_name.errors.0 }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="id_email">Email *</label>
+                    {{ form.email }}
+                    {% if form.email.errors %}
+                        <div class="field-error">{{ form.email.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="form-group">
+                    <label for="id_telefono">Teléfono</label>
+                    {{ form.telefono }}
+                    {% if form.telefono.errors %}
+                        <div class="field-error">{{ form.telefono.errors.0 }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="id_direccion">Dirección</label>
+                {{ form.direccion }}
+                {% if form.direccion.errors %}
+                    <div class="field-error">{{ form.direccion.errors.0 }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label for="id_foto_perfil">Foto de Perfil</label>
+                {% if usuario.foto_perfil %}
+                    <div style="margin-bottom: 10px;">
+                        <img src="{{ usuario.foto_perfil.url }}" alt="Foto actual" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover;">
+                    </div>
+                {% endif %}
+                {{ form.foto_perfil }}
+                {% if form.foto_perfil.errors %}
+                    <div class="field-error">{{ form.foto_perfil.errors.0 }}</div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Rol y Estado (solo si no es administrador) -->
+        {% if not usuario.is_administrador %}
+        <div class="form-section">
+            <h4 class="form-section-title"><i class="fas fa-shield-alt"></i> Rol y Estado</h4>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="id_rol">Rol *</label>
+                    {{ form.rol }}
+                    {% if form.rol.errors %}
+                        <div class="field-error">{{ form.rol.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="form-group">
+                    <label for="id_activo">
+                        <input type="checkbox" name="activo" id="id_activo" {% if usuario.activo %}checked{% endif %}>
+                        Usuario Activo
+                    </label>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Información Profesional (solo si es profesional) -->
+        {% if usuario.is_profesional %}
+        <div class="form-section" id="seccion-profesional">
+            <h4 class="form-section-title"><i class="fas fa-briefcase"></i> Información Profesional</h4>
+            
+            <div class="form-group">
+                <label for="id_anios_experiencia">Años de Experiencia *</label>
+                {{ form.anios_experiencia }}
+                {% if form.anios_experiencia.errors %}
+                    <div class="field-error">{{ form.anios_experiencia.errors.0 }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label for="id_servicios">Servicios que Ofrece</label>
+                <div style="max-height: 200px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 4px;">
+                    {{ form.servicios }}
+                </div>
+                {% if form.servicios.errors %}
+                    <div class="field-error">{{ form.servicios.errors.0 }}</div>
+                {% endif %}
+                <small style="color: #666; display: block; margin-top: 5px;">
+                    Mantén presionada la tecla Ctrl (Cmd en Mac) para seleccionar múltiples servicios
+                </small>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="modal-actions" style="margin-top: 30px;">
+        <button type="button" onclick="cerrarModal('modalEditarUsuario')" class="btn btn-secondary">
+            <i class="fas fa-times"></i> Cancelar
+        </button>
+        <button type="submit" class="btn btn-primary">
+            <i class="fas fa-save"></i> Guardar Cambios
+        </button>
+    </div>
+</form>
+
+<style>
+.form-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+.form-section {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    border-left: 4px solid #667eea;
+}
+
+.form-section-title {
+    color: #667eea;
+    margin: 0 0 15px 0;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    font-weight: 500;
+    margin-bottom: 5px;
+    color: #333;
+}
+
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group input[type="number"],
+.form-group input[type="file"],
+.form-group select,
+.form-group textarea {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 0.95rem;
+    transition: border-color 0.3s;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+select[multiple] {
+    min-height: 150px;
+}
+</style>
+
+<script>
+// Mostrar/ocultar sección profesional según el rol seleccionado
+document.addEventListener('DOMContentLoaded', function() {
+    const rolSelect = document.getElementById('id_rol');
+    const seccionProfesional = document.getElementById('seccion-profesional');
+    
+    if (rolSelect && seccionProfesional) {
+        rolSelect.addEventListener('change', function() {
+            if (this.value === 'profesional') {
+                seccionProfesional.style.display = 'block';
+            } else {
+                seccionProfesional.style.display = 'none';
+            }
+        });
+    }
+});
+</script>

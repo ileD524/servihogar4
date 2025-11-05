@@ -4,7 +4,15 @@
 {% block title %}Gestión de Categorías - ServiHogar{% endblock %}
 
 {% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link rel="stylesheet" href="{% static 'css/gestion-comun.css' %}">
+<style>
+.modal-content-ajax {
+    min-height: 200px;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+</style>
 {% endblock %}
 
 {% block content %}
@@ -140,11 +148,23 @@
                         </td>
                         <td>
                             <div class="acciones-btns">
-                                <a href="{% url 'servicios:modificar_categoria' categoria.id %}" class="btn btn-sm btn-primary" title="Editar">Editar</a>
+                                <button class="btn-icon btn-ver" onclick="verCategoria({{ categoria.id }})" title="Ver detalles">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="btn-icon btn-editar" onclick="editarCategoria({{ categoria.id }})" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn-icon btn-eliminar" onclick="confirmarEliminarCategoria({{ categoria.id }}, '{{ categoria.nombre }}')" title="Eliminar">
+                                    <i class="fas fa-trash"></i>
+                                </button>
                                 {% if categoria.activa %}
-                                    <a href="{% url 'servicios:eliminar_categoria' categoria.id %}" class="btn btn-sm btn-danger" title="Eliminar">Eliminar</a>
+                                <button class="btn-icon btn-desactivar" onclick="confirmarActivarCategoria({{ categoria.id }}, '{{ categoria.nombre }}', false)" title="Desactivar">
+                                    <i class="fas fa-ban"></i>
+                                </button>
                                 {% else %}
-                                    <a href="{% url 'servicios:toggle_categoria' categoria.id %}" class="btn btn-sm btn-success" title="Activar">Activar</a>
+                                <button class="btn-icon btn-activar" onclick="confirmarActivarCategoria({{ categoria.id }}, '{{ categoria.nombre }}', true)" title="Activar">
+                                    <i class="fas fa-check"></i>
+                                </button>
                                 {% endif %}
                             </div>
                         </td>
@@ -184,6 +204,97 @@
         {% endif %}
     </div>
 </div>
+
+<!-- Modal Ver Categoría -->
+<div id="modalVer" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-folder"></i> Detalles de Categoría</h3>
+            <button class="btn-close" onclick="cerrarModal('modalVer')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div id="contenidoModalVer" class="modal-content-ajax">
+                <div class="loading-spinner">
+                    <i class="fas fa-spinner fa-spin"></i> Cargando...
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="cerrarModal('modalVer')">
+                <i class="fas fa-times"></i> Cerrar
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Editar Categoría -->
+<div id="modalEditar" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-edit"></i> Editar Categoría</h3>
+            <button class="btn-close" onclick="cerrarModal('modalEditar')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div id="contenidoModalEditar" class="modal-content-ajax">
+                <div class="loading-spinner">
+                    <i class="fas fa-spinner fa-spin"></i> Cargando...
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Eliminar Categoría -->
+<div id="modalEliminar" class="modal">
+    <div class="modal-content modal-small">
+        <div class="modal-header">
+            <h3><i class="fas fa-trash"></i> Eliminar Categoría</h3>
+            <button class="btn-close" onclick="cerrarModal('modalEliminar')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="confirmacion-eliminar">
+                <i class="fas fa-exclamation-triangle"></i>
+                <p>¿Está seguro que desea eliminar la categoría <strong id="nombreCategoriaEliminar"></strong>?</p>
+                <p class="advertencia">Esta acción no se puede deshacer.</p>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="cerrarModal('modalEliminar')">
+                <i class="fas fa-times"></i> Cancelar
+            </button>
+            <button class="btn btn-danger" onclick="eliminarCategoria()">
+                <i class="fas fa-trash"></i> Eliminar
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Activar/Desactivar Categoría -->
+<div id="modalActivar" class="modal">
+    <div class="modal-content modal-small">
+        <div class="modal-header">
+            <h3><i class="fas fa-toggle-on"></i> <span id="tituloModalActivar">Activar</span> Categoría</h3>
+            <button class="btn-close" onclick="cerrarModal('modalActivar')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="confirmacion-activar">
+                <i class="fas fa-question-circle"></i>
+                <p id="mensajeModalActivar">¿Está seguro que desea activar la categoría <strong id="nombreCategoriaActivar"></strong>?</p>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="cerrarModal('modalActivar')">
+                <i class="fas fa-times"></i> Cancelar
+            </button>
+            <button class="btn btn-primary" id="btnConfirmarActivar" onclick="activarCategoria()">
+                <i class="fas fa-check"></i> Confirmar
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Mensajes de notificación -->
+<div id="mensajeNotificacion" class="mensaje-notificacion"></div>
 
 <style>
 .buscar-container {
@@ -556,6 +667,195 @@ function cambiarItems(valor) {
     url.searchParams.set('items', valor);
     url.searchParams.delete('page'); // Reset a página 1
     window.location.href = url.toString();
+}
+
+let categoriaIdActual = null;
+let accionActivar = true;
+
+// Función para abrir modal
+function abrirModal(modalId) {
+    document.getElementById(modalId).style.display = 'flex';
+    setTimeout(() => {
+        document.getElementById(modalId).classList.add('show');
+    }, 10);
+}
+
+// Función para cerrar modal
+function cerrarModal(modalId) {
+    const modal = document.getElementById(modalId);
+    modal.classList.remove('show');
+    setTimeout(() => {
+        modal.style.display = 'none';
+    }, 300);
+}
+
+// Cerrar modal al hacer clic fuera
+window.onclick = function(event) {
+    if (event.target.classList.contains('modal')) {
+        cerrarModal(event.target.id);
+    }
+}
+
+// Función para mostrar mensajes
+function mostrarMensaje(mensaje, tipo) {
+    const notificacion = document.getElementById('mensajeNotificacion');
+    notificacion.textContent = mensaje;
+    notificacion.className = 'mensaje-notificacion ' + tipo;
+    notificacion.classList.add('show');
+    
+    setTimeout(() => {
+        notificacion.classList.remove('show');
+    }, 3000);
+}
+
+// Ver Categoría
+function verCategoria(id) {
+    categoriaIdActual = id;
+    const contenido = document.getElementById('contenidoModalVer');
+    contenido.innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i> Cargando...</div>';
+    
+    abrirModal('modalVer');
+    
+    fetch(`/servicios/categorias/ver/${id}/ajax/`, {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+        }
+    })
+    .then(response => response.text())
+    .then(html => {
+        contenido.innerHTML = html;
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        contenido.innerHTML = '<div class="error-message">Error al cargar los datos</div>';
+    });
+}
+
+// Editar Categoría
+function editarCategoria(id) {
+    categoriaIdActual = id;
+    const contenido = document.getElementById('contenidoModalEditar');
+    contenido.innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i> Cargando...</div>';
+    
+    abrirModal('modalEditar');
+    
+    fetch(`/servicios/categorias/modificar/${id}/ajax/`, {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+        }
+    })
+    .then(response => response.text())
+    .then(html => {
+        contenido.innerHTML = html;
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        contenido.innerHTML = '<div class="error-message">Error al cargar el formulario</div>';
+    });
+}
+
+// Confirmar Eliminar Categoría
+function confirmarEliminarCategoria(id, nombre) {
+    categoriaIdActual = id;
+    document.getElementById('nombreCategoriaEliminar').textContent = nombre;
+    abrirModal('modalEliminar');
+}
+
+// Eliminar Categoría
+function eliminarCategoria() {
+    if (!categoriaIdActual) return;
+    
+    fetch(`/servicios/categorias/eliminar/${categoriaIdActual}/ajax/`, {
+        method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': getCookie('csrftoken')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            mostrarMensaje(data.message, 'success');
+            cerrarModal('modalEliminar');
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            mostrarMensaje(data.message || 'Error al eliminar la categoría', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        mostrarMensaje('Error al procesar la solicitud', 'error');
+    });
+}
+
+// Confirmar Activar/Desactivar Categoría
+function confirmarActivarCategoria(id, nombre, activar) {
+    categoriaIdActual = id;
+    accionActivar = activar;
+    
+    document.getElementById('nombreCategoriaActivar').textContent = nombre;
+    
+    if (activar) {
+        document.getElementById('tituloModalActivar').textContent = 'Activar';
+        document.getElementById('mensajeModalActivar').innerHTML = 
+            `¿Está seguro que desea <strong>activar</strong> la categoría <strong>${nombre}</strong>?`;
+        document.getElementById('btnConfirmarActivar').className = 'btn btn-success';
+        document.getElementById('btnConfirmarActivar').innerHTML = 
+            '<i class="fas fa-check"></i> Activar';
+    } else {
+        document.getElementById('tituloModalActivar').textContent = 'Desactivar';
+        document.getElementById('mensajeModalActivar').innerHTML = 
+            `¿Está seguro que desea <strong>desactivar</strong> la categoría <strong>${nombre}</strong>?`;
+        document.getElementById('btnConfirmarActivar').className = 'btn btn-warning';
+        document.getElementById('btnConfirmarActivar').innerHTML = 
+            '<i class="fas fa-ban"></i> Desactivar';
+    }
+    
+    abrirModal('modalActivar');
+}
+
+// Activar/Desactivar Categoría
+function activarCategoria() {
+    if (!categoriaIdActual) return;
+    
+    fetch(`/servicios/categorias/activar/${categoriaIdActual}/ajax/`, {
+        method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({ activar: accionActivar })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            mostrarMensaje(data.message, 'success');
+            cerrarModal('modalActivar');
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            mostrarMensaje(data.message || 'Error al cambiar el estado de la categoría', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        mostrarMensaje('Error al procesar la solicitud', 'error');
+    });
+}
+
+// Obtener cookie CSRF
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
 }
 </script>
 {% endblock %}
