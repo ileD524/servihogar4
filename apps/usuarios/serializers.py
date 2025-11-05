@@ -436,3 +436,92 @@ class FiltrosUsuarioSerializer(serializers.Serializer):
     )
     pagina = serializers.IntegerField(min_value=1, default=1)
     por_pagina = serializers.IntegerField(min_value=1, max_value=100, default=20)
+
+
+# ============================================================================
+# SERIALIZERS PARA AUTENTICACIÓN (CU-07, CU-08)
+# ============================================================================
+
+class LoginEmailSerializer(serializers.Serializer):
+    """
+    Serializer para inicio de sesión con email y contraseña (CU-07).
+    """
+    
+    email = serializers.EmailField(
+        required=True,
+        help_text="Email registrado en el sistema"
+    )
+    password = serializers.CharField(
+        required=True,
+        write_only=True,
+        style={'input_type': 'password'},
+        help_text="Contraseña de la cuenta"
+    )
+    
+    def validate_email(self, value):
+        """Normalizar email a minúsculas"""
+        return value.lower().strip()
+
+
+class LoginGoogleSerializer(serializers.Serializer):
+    """
+    Serializer para inicio de sesión con Google OAuth (CU-07).
+    """
+    
+    token = serializers.CharField(
+        required=True,
+        help_text="Token JWT de Google OAuth obtenido desde el frontend"
+    )
+    
+    def validate_token(self, value):
+        """Validar que el token no esté vacío"""
+        if not value or not value.strip():
+            raise serializers.ValidationError(
+                "Token de Google requerido"
+            )
+        return value.strip()
+
+
+class LogoutSerializer(serializers.Serializer):
+    """
+    Serializer para cierre de sesión (CU-08).
+    """
+    
+    refresh_token = serializers.CharField(
+        required=False,
+        help_text="Refresh token JWT a invalidar (opcional)"
+    )
+
+
+class TokenResponseSerializer(serializers.Serializer):
+    """
+    Serializer para la respuesta de tokens JWT.
+    Solo para documentación.
+    """
+    
+    access = serializers.CharField(
+        read_only=True,
+        help_text="Access token JWT (corta duración)"
+    )
+    refresh = serializers.CharField(
+        read_only=True,
+        help_text="Refresh token JWT (larga duración)"
+    )
+
+
+class UsuarioLoginResponseSerializer(serializers.Serializer):
+    """
+    Serializer para la respuesta de login exitoso.
+    Solo para documentación.
+    """
+    
+    id = serializers.IntegerField(read_only=True)
+    username = serializers.CharField(read_only=True)
+    email = serializers.EmailField(read_only=True)
+    first_name = serializers.CharField(read_only=True)
+    last_name = serializers.CharField(read_only=True)
+    rol = serializers.ChoiceField(
+        choices=['administrador', 'profesional', 'cliente'],
+        read_only=True
+    )
+    foto_perfil = serializers.URLField(read_only=True, allow_null=True)

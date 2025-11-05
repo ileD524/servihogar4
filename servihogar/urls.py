@@ -32,6 +32,7 @@ urlpatterns = [
     
     # API REST
     path('api/usuarios/', include('apps.usuarios.api_urls')),
+    path('api/auth/', include('apps.usuarios.auth_urls')),  # Autenticación
 ]
 
 # Servir archivos media en desarrollo

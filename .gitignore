@@ -1,2 +1,26 @@
 __pycache__/  
-*.pyc 
+*.pyc
+
+# Environment variables (NUNCA subir credenciales)
+.env
+*.env
+!.env.example
+
+# Base de datos
+db.sqlite3
+
+# Media files (desarrollo)
+media/
+
+# Static files (producción)
+staticfiles/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
