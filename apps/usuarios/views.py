@@ -831,3 +831,39 @@ def dashboard_admin(request):
         'servicios_populares': servicios_populares,
     }
     return render(request, 'usuarios/dashboard_admin.html', context)
+
+
+# CU-01: Confirmar Email
+def confirmar_email(request, uidb64, token):
+    """
+    Vista para confirmar el email del usuario.
+    Activar la cuenta después de hacer clic en el enlace del email.
+    """
+    from django.contrib.auth.tokens import default_token_generator
+    from django.utils.http import urlsafe_base64_decode
+    from django.utils.encoding import force_str
+    from .services import UsuarioService
+    from django.core.exceptions import ValidationError
+    
+    try:
+        # Decodificar UID
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        usuario = Usuario.objects.get(pk=uid)
+        
+        # Validar token
+        if not default_token_generator.check_token(usuario, token):
+            messages.error(request, 'El enlace de confirmación es inválido o ha expirado.')
+            return redirect('usuarios:login')
+        
+        # Confirmar email usando el servicio
+        UsuarioService.confirmar_email(usuario.id)
+        
+        messages.success(request, '¡Email confirmado exitosamente! Ya puedes iniciar sesión.')
+        return redirect('usuarios:login')
+        
+    except (TypeError, ValueError, OverflowError, Usuario.DoesNotExist):
+        messages.error(request, 'El enlace de confirmación es inválido.')
+        return redirect('usuarios:login')
+    except ValidationError as e:
+        messages.error(request, str(e))
+        return redirect('usuarios:login')

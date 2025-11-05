@@ -21,6 +21,9 @@ urlpatterns = [
     # CU-02: Eliminar Perfil (usuario da de baja su propia cuenta)
     path('perfil/eliminar/', views.eliminar_perfil, name='eliminar_perfil'),
     
+    # CU-01: Confirmar Email
+    path('confirmar/<str:uidb64>/<str:token>/', views.confirmar_email, name='confirmar_email'),
+    
     # Gestión de usuarios por ADMINISTRADOR
     path('admin/registrar/', views.registrar_usuario_admin, name='registrar_usuario_admin'),
     path('admin/buscar/', views.buscar_usuario, name='buscar_usuario'),

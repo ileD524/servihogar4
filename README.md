@@ -2,14 +2,59 @@
 
 Plataforma web desarrollada en Django para la gestión integral de servicios del hogar, conectando clientes con profesionales mediante un sistema de turnos, calificaciones y pagos.
 
+## 🆕 Nueva Implementación: API REST para Gestión de Perfiles
+
+Se ha implementado un sistema completo de **API REST** para la gestión de perfiles de usuario (CU-01, CU-02, CU-03) con:
+
+- ✅ **Registro de usuarios** (manual y Google OAuth)
+- ✅ **Confirmación por email** con tokens seguros
+- ✅ **Modificación de perfil** con validaciones exhaustivas
+- ✅ **Eliminación de perfil** con baja lógica y anonimización
+- ✅ **Arquitectura limpia** (Servicios, Validadores, Serializers)
+- ✅ **24 tests unitarios** con buena cobertura
+- ✅ **Documentación completa** con ejemplos de uso
+
+**📚 Documentación disponible:**
+- [**GUIA_INSTALACION.md**](GUIA_INSTALACION.md) - Instalación paso a paso
+- [**API_USUARIOS_DOCUMENTATION.md**](API_USUARIOS_DOCUMENTATION.md) - Documentación completa de la API
+- [**IMPLEMENTACION_USUARIOS.md**](IMPLEMENTACION_USUARIOS.md) - Guía de implementación técnica
+- [**README_IMPLEMENTACION.md**](README_IMPLEMENTACION.md) - Resumen ejecutivo
+
+**🚀 Quick Start API:**
+```bash
+# Instalar dependencias
+pip install -r requirements.txt
+
+# Aplicar migraciones
+python manage.py migrate
+
+# Ejecutar servidor
+python manage.py runserver
+
+# La API está disponible en: http://localhost:8000/api/usuarios/
+```
+
+---
+
 ## Descripción General
 
 ServiHogar es una aplicación web que permite la administración completa de servicios domésticos. El sistema gestiona usuarios con diferentes roles (clientes, profesionales y administradores), servicios organizados por categorías, solicitud y seguimiento de turnos, aplicación de promociones, políticas de cancelación y generación de reportes estadísticos.
 
 ## Funcionalidades Principales
 
-### Gestión de Usuarios
-Sistema completo de autenticación y administración de usuarios con tres roles diferenciados: clientes que solicitan servicios, profesionales que los ofrecen y administradores que gestionan la plataforma. Incluye registro, login convencional, modificación de perfiles, activación y desactivación de cuentas. Los usuarios pueden subir fotos de perfil y gestionar su información personal. El sistema implementa control de acceso basado en roles con decoradores personalizados.
+### Gestión de Usuarios ⭐ MEJORADO
+Sistema completo de autenticación y administración de usuarios con tres roles diferenciados: clientes que solicitan servicios, profesionales que los ofrecen y administradores que gestionan la plataforma. 
+
+**Nuevas características:**
+- **API REST completa** para registro, modificación y eliminación de perfiles
+- **Autenticación por Google OAuth** integrada
+- **Sistema de confirmación por email** con tokens seguros (expiran en 24h)
+- **Validaciones robustas** (email único, contraseña segura, formato de teléfono)
+- **Baja lógica** con anonimización de datos personales
+- **Auditoría completa** de operaciones de usuario
+- **Separación de responsabilidades** (Servicios, Validadores, Serializers)
+
+El sistema implementa control de acceso basado en roles con decoradores personalizados. Incluye registro, login convencional y por Google, modificación de perfiles, activación y desactivación de cuentas. Los usuarios pueden subir fotos de perfil y gestionar su información personal.
 
 ### Gestión de Servicios y Categorías
 Los servicios se organizan en categorías para facilitar su búsqueda y gestión. Cada servicio tiene nombre, descripción, precio base, duración estimada y está asociado a un profesional. El sistema permite crear, modificar y desactivar tanto servicios como categorías. Implementa validación de dependencias: al desactivar una categoría, todos sus servicios asociados se desactivan automáticamente. Incluye búsqueda avanzada con filtros por nombre, categoría y estado, además de ordenamiento por múltiples columnas.
@@ -32,6 +77,7 @@ Todos los registros principales (usuarios, servicios, categorías) implementan s
 ## Tecnologías Utilizadas
 
 - Backend: Django 5.2.7
+- **API REST: Django REST Framework 3.14.0** ⭐ NUEVO
 - Base de datos: SQLite
 - Frontend: HTML5, CSS3
 - Python: 3.13.9
@@ -45,12 +91,28 @@ servihogar4/
 ├── manage.py
 ├── db.sqlite3
 ├── requirements.txt
+├── README.md                         # Este archivo
+├── GUIA_INSTALACION.md              # ⭐ Guía de instalación paso a paso
+├── API_USUARIOS_DOCUMENTATION.md    # ⭐ Documentación completa de la API
+├── IMPLEMENTACION_USUARIOS.md       # ⭐ Guía de implementación técnica
+├── README_IMPLEMENTACION.md         # ⭐ Resumen ejecutivo
 ├── servihogar/
 │   ├── settings.py
 │   ├── urls.py
 │   └── wsgi.py
 ├── apps/
 │   ├── usuarios/
+│   │   ├── models.py
+│   │   ├── services.py             # ⭐ Lógica de negocio
+│   │   ├── validators.py           # ⭐ Validaciones
+│   │   ├── serializers.py          # ⭐ Serializers REST
+│   │   ├── api_views.py            # ⭐ Endpoints REST
+│   │   ├── api_urls.py             # ⭐ URLs de la API
+│   │   ├── emails.py               # ⭐ Gestión de emails
+│   │   ├── tests_services.py       # ⭐ Tests unitarios
+│   │   ├── views.py
+│   │   ├── urls.py
+│   │   └── forms.py
 │   ├── servicios/
 │   ├── turnos/
 │   ├── promociones/
@@ -72,6 +134,8 @@ servihogar4/
 │   └── img/
 └── media/
     └── usuarios/
+
+⭐ = Archivos nuevos de la implementación API REST
 ```
 
 ## Instalación y Configuración

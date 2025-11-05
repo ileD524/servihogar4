@@ -29,6 +29,9 @@ urlpatterns = [
     path('promociones/', include('apps.promociones.urls')),
     path('politicas/', include('apps.politicas.urls')),
     path('reportes/', include('apps.reportes.urls')),
+    
+    # API REST
+    path('api/usuarios/', include('apps.usuarios.api_urls')),
 ]
 
 # Servir archivos media en desarrollo
