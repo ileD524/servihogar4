@@ -1,9 +1,9 @@
 """
 URLs para la API REST de usuarios.
-Define los endpoints para los casos de uso CU-01, CU-02 y CU-03.
+Define los endpoints para los casos de uso CU-01, CU-02, CU-03, CU-04, CU-05 y CU-06.
 """
 from django.urls import path
-from . import api_views
+from . import api_views, admin_api_views
 
 app_name = 'usuarios_api'
 
@@ -59,4 +59,33 @@ urlpatterns = [
     path('perfil/puede-eliminar/', 
          api_views.verificar_puede_eliminar_api, 
          name='verificar_puede_eliminar'),
+    
+    # ========================================================================
+    # CU-04, CU-05, CU-06: GESTIÓN ADMINISTRATIVA DE USUARIOS
+    # ========================================================================
+    
+    # Listar usuarios (con filtros, búsqueda y paginación)
+    path('admin/', 
+         admin_api_views.listar_usuarios_api, 
+         name='admin_listar_usuarios'),
+    
+    # Registrar usuario por administrador (CU-04)
+    path('admin/registrar/', 
+         admin_api_views.registrar_usuario_admin_api, 
+         name='admin_registrar_usuario'),
+    
+    # Obtener detalle de un usuario
+    path('admin/<int:usuario_id>/', 
+         admin_api_views.obtener_usuario_api, 
+         name='admin_obtener_usuario'),
+    
+    # Modificar usuario por administrador (CU-05)
+    path('admin/<int:usuario_id>/modificar/', 
+         admin_api_views.modificar_usuario_admin_api, 
+         name='admin_modificar_usuario'),
+    
+    # Eliminar usuario por administrador (CU-06)
+    path('admin/<int:usuario_id>/eliminar/', 
+         admin_api_views.eliminar_usuario_admin_api, 
+         name='admin_eliminar_usuario'),
 ]

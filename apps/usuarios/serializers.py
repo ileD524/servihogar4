@@ -247,3 +247,192 @@ class EliminarPerfilSerializer(serializers.Serializer):
                 "Debe confirmar explícitamente que desea eliminar su perfil"
             )
         return value
+
+
+# ============================================================================
+# SERIALIZERS PARA ADMINISTRADORES (CU-04, CU-05, CU-06)
+# ============================================================================
+
+class AdminRegistroUsuarioSerializer(serializers.Serializer):
+    """
+    Serializer para registro de usuarios por administrador (CU-04).
+    El admin puede crear usuarios directamente activos o pendientes.
+    """
+    
+    # Datos básicos
+    username = serializers.CharField(max_length=150, required=True)
+    email = serializers.EmailField(required=True)
+    password = serializers.CharField(
+        write_only=True, 
+        required=False,
+        style={'input_type': 'password'},
+        help_text="Opcional. Si no se proporciona, se genera una temporal"
+    )
+    first_name = serializers.CharField(max_length=150, required=True)
+    last_name = serializers.CharField(max_length=150, required=True)
+    telefono = serializers.CharField(max_length=20, required=False, allow_blank=True)
+    direccion = serializers.CharField(required=False, allow_blank=True)
+    
+    # Tipo de usuario
+    rol = serializers.ChoiceField(choices=['cliente', 'profesional'], required=True)
+    
+    # Estado inicial (el admin decide)
+    estado = serializers.ChoiceField(
+        choices=['activo', 'pendiente'],
+        default='activo',
+        help_text="Estado inicial del usuario"
+    )
+    
+    # Autenticación Google
+    google_id = serializers.CharField(required=False, allow_blank=True)
+    
+    # Datos adicionales para profesionales
+    anios_experiencia = serializers.IntegerField(required=False, default=0, min_value=0)
+    servicios = serializers.ListField(
+        child=serializers.IntegerField(),
+        required=False,
+        allow_empty=False,
+        help_text="IDs de servicios para profesionales"
+    )
+    horarios = serializers.ListField(
+        child=serializers.DictField(),
+        required=False,
+        allow_empty=False
+    )
+    
+    def validate_username(self, value):
+        """Validar que el username sea único"""
+        if Usuario.objects.filter(username=value).exists():
+            raise serializers.ValidationError("Este nombre de usuario ya está en uso")
+        return value
+    
+    def validate(self, data):
+        """Validación adicional según el rol"""
+        if data.get('rol') == 'profesional':
+            # Para profesionales, servicios son requeridos
+            if not data.get('servicios'):
+                raise serializers.ValidationError({
+                    'servicios': 'Los profesionales deben tener al menos un servicio asignado'
+                })
+        
+        return data
+
+
+class AdminModificarUsuarioSerializer(serializers.Serializer):
+    """
+    Serializer para modificación de usuarios por administrador (CU-05).
+    El admin puede modificar cualquier campo, incluido el rol y estado.
+    """
+    
+    # Datos básicos (todos opcionales)
+    username = serializers.CharField(max_length=150, required=False)
+    first_name = serializers.CharField(max_length=150, required=False)
+    last_name = serializers.CharField(max_length=150, required=False)
+    email = serializers.EmailField(required=False)
+    telefono = serializers.CharField(max_length=20, required=False, allow_blank=True)
+    direccion = serializers.CharField(required=False, allow_blank=True)
+    
+    # El admin puede cambiar el rol
+    rol = serializers.ChoiceField(
+        choices=['cliente', 'profesional'],
+        required=False,
+        help_text="Cambiar rol requiere que no haya turnos activos"
+    )
+    
+    # El admin puede activar/desactivar usuarios
+    activo = serializers.BooleanField(
+        required=False,
+        help_text="Estado activo/inactivo del usuario"
+    )
+    
+    # Datos para profesionales
+    anios_experiencia = serializers.IntegerField(required=False, min_value=0)
+    servicios = serializers.ListField(
+        child=serializers.IntegerField(),
+        required=False,
+        allow_empty=True
+    )
+    horarios = serializers.ListField(
+        child=serializers.DictField(),
+        required=False,
+        allow_empty=False
+    )
+    
+    def validate_email(self, value):
+        """Validar que el email sea único (excepto para el usuario actual)"""
+        usuario_id = self.context.get('usuario_id')
+        if usuario_id:
+            if Usuario.objects.filter(email=value).exclude(id=usuario_id).exists():
+                raise serializers.ValidationError("Este email ya está en uso")
+        return value
+    
+    def validate_username(self, value):
+        """Validar que el username sea único (excepto para el usuario actual)"""
+        usuario_id = self.context.get('usuario_id')
+        if usuario_id:
+            if Usuario.objects.filter(username=value).exclude(id=usuario_id).exists():
+                raise serializers.ValidationError("Este nombre de usuario ya está en uso")
+        return value
+    
+    def validate(self, data):
+        """Validación adicional"""
+        # Si cambia a profesional, debe proporcionar servicios
+        if data.get('rol') == 'profesional':
+            if 'servicios' in data and not data['servicios']:
+                raise serializers.ValidationError({
+                    'servicios': 'Los profesionales deben tener al menos un servicio'
+                })
+        
+        return data
+
+
+class AdminEliminarUsuarioSerializer(serializers.Serializer):
+    """
+    Serializer para eliminación de usuarios por administrador (CU-06).
+    Permite forzar la eliminación aunque haya turnos/pagos activos.
+    """
+    
+    confirmar = serializers.BooleanField(required=True)
+    forzar = serializers.BooleanField(
+        default=False,
+        help_text="Forzar eliminación aunque haya turnos o pagos activos (usar con precaución)"
+    )
+    
+    def validate_confirmar(self, value):
+        """Validar que se confirme explícitamente"""
+        if not value:
+            raise serializers.ValidationError(
+                "Debe confirmar explícitamente que desea eliminar este usuario"
+            )
+        return value
+
+
+class FiltrosUsuarioSerializer(serializers.Serializer):
+    """
+    Serializer para filtros de listado de usuarios.
+    """
+    
+    rol = serializers.ChoiceField(
+        choices=['cliente', 'profesional', 'administrador'],
+        required=False,
+        allow_blank=True
+    )
+    activo = serializers.BooleanField(required=False)
+    busqueda = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        help_text="Buscar en nombre, email, username"
+    )
+    orden = serializers.ChoiceField(
+        choices=[
+            'username', '-username',
+            'email', '-email',
+            'fecha_registro', '-fecha_registro',
+            'first_name', '-first_name',
+            'last_name', '-last_name'
+        ],
+        required=False,
+        default='-fecha_registro'
+    )
+    pagina = serializers.IntegerField(min_value=1, default=1)
+    por_pagina = serializers.IntegerField(min_value=1, max_value=100, default=20)
