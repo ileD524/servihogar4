@@ -1,102 +1,116 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Gestión de Servicios - ServiHogar{% endblock %}
+{% block title %}Gestión de Promociones - ServiHogar{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/gestion-comun.css' %}">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<style>
+.modal-content-ajax {
+    min-height: 200px;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+</style>
 {% endblock %}
 
 {% block content %}
 <div class="buscar-container">
-    <!-- Header con título y botones de acción -->
+    <!-- Header con título y botón nuevo -->
     <div class="page-title-bar">
         <div class="title-section">
-            <h1>SERVICIOS</h1>
+            <h1>PROMOCIONES</h1>
             <span class="subtitle">ServiHogar</span>
         </div>
         <div class="header-actions">
-            <a href="{% url 'servicios:buscar_categoria' %}" class="btn btn-categoria">Categorías</a>
-            <a href="{% url 'servicios:registrar_servicio' %}" class="btn btn-nuevo">Nuevo Servicio</a>
+            <a href="{% url 'promociones:registrar_promocion' %}" class="btn btn-nuevo">+ Nueva Promoción</a>
         </div>
     </div>
-    
+
     <!-- Filtros de búsqueda -->
     <div class="search-controls">
         <form method="get" class="inline-search-form">
             <div class="search-filters">
                 <div class="filter-item">
-                    <label>{{ form.nombre.label }}</label>
-                    {{ form.nombre }}
+                    <label>{{ form.titulo.label }}</label>
+                    {{ form.titulo }}
                 </div>
                 
                 <div class="filter-item">
-                    <label>{{ form.categoria.label }}</label>
-                    {{ form.categoria }}
+                    <label>{{ form.activa.label }}</label>
+                    {{ form.activa}}
                 </div>
-                
+
                 <div class="filter-item">
-                    <label>{{ form.estado.label }}</label>
-                    {{ form.estado }}
+                    <label>{{ form.fecha_inicio.label }}</label>
+                    {{ form.fecha_inicio }}
+                </div>
+
+                <div class="filter-item">
+                    <label>{{ form.fecha_fin.label }}</label>
+                    {{ form.fecha_fin }}
                 </div>
             </div>
             
             <div class="search-buttons">
                 <button type="submit" class="btn btn-search">Buscar</button>
-                <a href="{% url 'servicios:buscar_servicio' %}" class="btn btn-clear">Limpiar</a>
+                <a href="{% url 'promociones:buscar_promocion' %}" class="btn btn-clear">Limpiar</a>
             </div>
         </form>
     </div>
-    
+
+
     <!-- Tabla de resultados -->
-    <div class="resultados-card">
+        <div class="resultados-card">
         <div class="table-controls">
             <div class="pagination-controls">
                 <label>Mostrar:</label>
-                <select class="show-entries" onchange="cambiarItems(this.value)">
-                    <option value="10" {% if items_por_pagina == 10 %}selected{% endif %}>10</option>
-                    <option value="25" {% if items_por_pagina == 25 %}selected{% endif %}>25</option>
-                    <option value="50" {% if items_por_pagina == 50 %}selected{% endif %}>50</option>
-                </select>
+                    <select class="show-entries" name="items" onchange="cambiarItems(this.value)">
+                        <option value="10" {% if request.GET.items == '10' %}selected{% endif %}>10</option>
+                        <option value="25" {% if request.GET.items == '25' %}selected{% endif %}>25</option>
+                        <option value="50" {% if request.GET.items == '50' %}selected{% endif %}>50</option>
+                    </select>
                 <span>registros</span>
             </div>
         </div>
         
-        {% if servicios %}
+        {% if promociones %}
         <div class="usuarios-table-container">
             <table class="usuarios-table">
                 <thead>
                     <tr>
                         <th>
                             <a href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}orden=id&dir={% if orden_actual == 'id' and dir_actual == 'asc' %}desc{% else %}asc{% endif %}" class="sort-link">
-                                ID 
+                                ID
                                 {% if orden_actual == 'id' %}
                                     <span class="sort-arrow">{% if dir_actual == 'asc' %}▲{% else %}▼{% endif %}</span>
                                 {% endif %}
                             </a>
                         </th>
                         <th>
-                            <a href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}orden=nombre&dir={% if orden_actual == 'nombre' and dir_actual == 'asc' %}desc{% else %}asc{% endif %}" class="sort-link">
-                                Servicio
-                                {% if orden_actual == 'nombre' %}
+                            <a href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}orden=titulo&dir={% if orden_actual == 'titulo' and dir_actual == 'asc' %}desc{% else %}asc{% endif %}" class="sort-link">
+                                Título
+                                {% if orden_actual == 'titulo' %}
                                     <span class="sort-arrow">{% if dir_actual == 'asc' %}▲{% else %}▼{% endif %}</span>
                                 {% endif %}
                             </a>
                         </th>
+                        <th>Descripción</th>
                         <th>Categoría</th>
                         <th>
-                            <a href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}orden=precio_base&dir={% if orden_actual == 'precio_base' and dir_actual == 'asc' %}desc{% else %}asc{% endif %}" class="sort-link">
-                                Precio
-                                {% if orden_actual == 'precio_base' %}
+                            <a href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}orden=fecha_inicio&dir={% if orden_actual == 'fecha_inicio' and dir_actual == 'asc' %}desc{% else %}asc{% endif %}" class="sort-link">
+                                Fecha Inicio
+                                {% if orden_actual == 'fecha_inicio' %}
                                     <span class="sort-arrow">{% if dir_actual == 'asc' %}▲{% else %}▼{% endif %}</span>
                                 {% endif %}
                             </a>
                         </th>
                         <th>
-                            <a href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}orden=duracion_estimada&dir={% if orden_actual == 'duracion_estimada' and dir_actual == 'asc' %}desc{% else %}asc{% endif %}" class="sort-link">
-                                Duración
-                                {% if orden_actual == 'duracion_estimada' %}
+                            <a href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}orden=fecha_fin&dir={% if orden_actual == 'fecha_fin' and dir_actual == 'asc' %}desc{% else %}asc{% endif %}" class="sort-link">
+                                Fecha Fin
+                                {% if orden_actual == 'fecha_fin' %}
                                     <span class="sort-arrow">{% if dir_actual == 'asc' %}▲{% else %}▼{% endif %}</span>
                                 {% endif %}
                             </a>
@@ -130,49 +144,46 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for servicio in servicios %}
-                    <tr class="{% if not servicio.activo %}usuario-inactivo{% endif %}">
-                        <td>{{ servicio.id }}</td>
-                        <td><strong>{{ servicio.nombre }}</strong></td>
+                    {% for promocion in promociones %}
+                    <tr class="{% if not promocion.activa %}usuario-inactivo{% endif %}">
+                        <td>{{ promocion.id }}</td>
+                        <td><strong>{{ promocion.titulo}}</strong></td>
+                        <td>{{ promocion.descripcion|truncatewords:10 }}</td>
+                        <td>{{ promocion.categoria}}</td>
+                        <td>{{ promocion.fecha_inicio|date:"d/m/Y H:i" }}</td>
+                        <td>{{ promocion.fecha_fin|date:"d/m/Y H:i" }}</td>
                         <td>
-                            <span class="categoria-tag">
-                                {{ servicio.categoria.nombre }}
-                            </span>
-                        </td>
-                        <td><strong>${{ servicio.precio_base }}</strong></td>
-                        <td>{{ servicio.duracion_estimada }} min</td>
-                        <td>
-                            {% if servicio.activo %}
-                            <span class="badge badge-success">Activo</span>
+                            {% if promocion.activa %}
+                            <span class="badge badge-success">Activa</span>
                             {% else %}
-                            <span class="badge badge-danger">Inactivo</span>
+                            <span class="badge badge-danger">Inactiva</span>
                             {% endif %}
                         </td>
-                        <td>{{ servicio.fecha_creacion|date:"d/m/Y H:i" }}</td>
-                        <td>{{ servicio.fecha_modificacion|date:"d/m/Y H:i" }}</td>
+                        <td>{{ promocion.fecha_creacion|date:"d/m/Y H:i" }}</td>
+                        <td>{{ promocion.fecha_modificacion|date:"d/m/Y H:i" }}</td>
                         <td>
-                            {% if servicio.fecha_eliminacion %}
-                                {{ servicio.fecha_eliminacion|date:"d/m/Y H:i" }}
+                            {% if promocion.fecha_eliminacion %}
+                                {{ promocion.fecha_eliminacion|date:"d/m/Y H:i" }}
                             {% else %}
                                 -
                             {% endif %}
                         </td>
                         <td>
                             <div class="acciones-btns">
-                                <button onclick="verServicio( servicio.id )" class="btn btn-sm btn-icon" title="Ver">
+                                <button class="btn btn-sm btn-icon " onclick="verPromocion({{ promocion.id }})" title="Ver detalles">
                                     <i class="fas fa-eye"></i>
                                 </button>
-                                <button onclick="editarServicio( servicio.id )" class="btn btn-sm btn-icon btn-primary" title="Editar">
+                                <button class="btn btn-sm btn-icon btn-primary" onclick="editarPromocion({{ promocion.id }})" title="Editar">
                                     <i class="fas fa-edit"></i>
                                 </button>
-                                {% if servicio.activo %}
-                                    <button onclick="confirmarEliminarServicio( servicio.id, '{{ servicio.nombre|escapejs }}' )" class="btn btn-sm btn-icon btn-danger" title="Eliminar">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
+                                {% if promocion.activa %}
+                                <button class="btn btn-sm btn-icon btn-danger" onclick="confirmarEliminarPromocion({{ promocion.id }}, '{{ promocion.titulo|escapejs }}')" title="Eliminar">
+                                    <i class="fas fa-trash"></i>
+                                </button>
                                 {% else %}
-                                    <button onclick="activarServicio( servicio.id )" class="btn btn-sm btn-icon btn-success" title="Activar">
-                                        <i class="fas fa-check"></i>
-                                    </button>
+                                <button class="btn btn-sm btn-icon btn-success" onclick="activarPromocion({{ promocion.id }})" title="Activar">
+                                    <i class="fas fa-check"></i>
+                                </button>
                                 {% endif %}
                             </div>
                         </td>
@@ -181,32 +192,36 @@
                 </tbody>
             </table>
         </div>
-        
+
         <div class="table-footer">
             <div class="showing-info">
-                Mostrando {{ page_obj.start_index }} a {{ page_obj.end_index }} de {{ page_obj.paginator.count }} servicio(s)
+                Mostrando {{ page_obj.start_index }} a {{ page_obj.end_index }} de {{ page_obj.paginator.count }} promocion(es)
             </div>
             
             {% if page_obj.has_other_pages %}
             <div class="pagination">
                 {% if page_obj.has_previous %}
-                    <a href="?page=1{% if request.GET.nombre %}&nombre={{ request.GET.nombre }}{% endif %}{% if request.GET.categoria %}&categoria={{ request.GET.categoria }}{% endif %}{% if request.GET.estado %}&estado={{ request.GET.estado }}{% endif %}{% if request.GET.items %}&items={{ request.GET.items }}{% endif %}{% if request.GET.orden %}&orden={{ request.GET.orden }}{% endif %}{% if request.GET.dir %}&dir={{ request.GET.dir }}{% endif %}" class="page-link">« Primera</a>
-                    <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.nombre %}&nombre={{ request.GET.nombre }}{% endif %}{% if request.GET.categoria %}&categoria={{ request.GET.categoria }}{% endif %}{% if request.GET.estado %}&estado={{ request.GET.estado }}{% endif %}{% if request.GET.items %}&items={{ request.GET.items }}{% endif %}{% if request.GET.orden %}&orden={{ request.GET.orden }}{% endif %}{% if request.GET.dir %}&dir={{ request.GET.dir }}{% endif %}" class="page-link">‹ Anterior</a>
+                    <a href="?page=1{% if request.GET.titulo %}&titulo={{ request.GET.titulo }}{% endif %}
+                    {% if request.GET.activa %}&activa={{ request.GET.activa }}{% endif %}
+                    {% if request.GET.items %}&items={{ request.GET.items }}{% endif %}
+                    {% if request.GET.orden %}&orden={{ request.GET.orden }}{% endif %}
+                    {% if request.GET.dir %}&dir={{ request.GET.dir }}{% endif %}" class="page-link">« Primera</a>
+                    <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.titulo %}&titulo={{ request.GET.titulo }}{% endif %}{% if request.GET.activa %}&activa={{ request.GET.activa }}{% endif %}{% if request.GET.items %}&items={{ request.GET.items }}{% endif %}{% if request.GET.orden %}&orden={{ request.GET.orden }}{% endif %}{% if request.GET.dir %}&dir={{ request.GET.dir }}{% endif %}" class="page-link">‹ Anterior</a>
                 {% endif %}
                 
                 <span class="page-current">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
                 
                 {% if page_obj.has_next %}
-                    <a href="?page={{ page_obj.next_page_number }}{% if request.GET.nombre %}&nombre={{ request.GET.nombre }}{% endif %}{% if request.GET.categoria %}&categoria={{ request.GET.categoria }}{% endif %}{% if request.GET.estado %}&estado={{ request.GET.estado }}{% endif %}{% if request.GET.items %}&items={{ request.GET.items }}{% endif %}{% if request.GET.orden %}&orden={{ request.GET.orden }}{% endif %}{% if request.GET.dir %}&dir={{ request.GET.dir }}{% endif %}" class="page-link">Siguiente ›</a>
-                    <a href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.nombre %}&nombre={{ request.GET.nombre }}{% endif %}{% if request.GET.categoria %}&categoria={{ request.GET.categoria }}{% endif %}{% if request.GET.estado %}&estado={{ request.GET.estado }}{% endif %}{% if request.GET.items %}&items={{ request.GET.items }}{% endif %}{% if request.GET.orden %}&orden={{ request.GET.orden }}{% endif %}{% if request.GET.dir %}&dir={{ request.GET.dir }}{% endif %}" class="page-link">Última »</a>
+                    <a href="?page={{ page_obj.next_page_number }}{% if request.GET.titulo %}&titulo={{ request.GET.titulo }}{% endif %}{% if request.GET.activa %}&activa={{ request.GET.activa }}{% endif %}{% if request.GET.items %}&items={{ request.GET.items }}{% endif %}{% if request.GET.orden %}&orden={{ request.GET.orden }}{% endif %}{% if request.GET.dir %}&dir={{ request.GET.dir }}{% endif %}" class="page-link">Siguiente ›</a>
+                    <a href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.titulo %}&titulo={{ request.GET.titulo }}{% endif %}{% if request.GET.activa %}&activa={{ request.GET.activa }}{% endif %}{% if request.GET.items %}&items={{ request.GET.items }}{% endif %}{% if request.GET.orden %}&orden={{ request.GET.orden }}{% endif %}{% if request.GET.dir %}&dir={{ request.GET.dir }}{% endif %}" class="page-link">Última »</a>
                 {% endif %}
             </div>
             {% endif %}
         </div>
         {% else %}
         <div class="no-resultados">
-            <p>No se encontraron servicios</p>
-            <a href="{% url 'servicios:registrar_servicio' %}" class="btn btn-primary">Crear Servicio</a>
+            <p>No se encontraron promociones</p>
+            <a href="{% url 'promociones:registrar_promocion' %}" class="btn btn-primary">Crear Promoción</a>
         </div>
         {% endif %}
     </div>
@@ -745,70 +760,70 @@
 }
 </style>
 
-<!-- Modal Ver Servicio -->
-<div id="modalVerServicio" class="modal">
+<!-- Modal Ver Promoción -->
+<div id="modalVerPromocion" class="modal">
     <div class="modal-content modal-large">
         <div class="modal-header">
-            <h2><i class="fas fa-concierge-bell"></i> Detalle del Servicio</h2>
-            <span class="modal-close" onclick="cerrarModal('modalVerServicio')">&times;</span>
+            <h2><i class="fas fa-concierge-bell"></i> Detalle de la Promoción</h2>
+            <span class="modal-close" onclick="cerrarModal('modalVerPromocion')">&times;</span>
         </div>
-        <div class="modal-body" id="contenidoVerServicio">
+        <div class="modal-body" id="contenidoVerPromocion">
             <div class="loading">Cargando...</div>
         </div>
     </div>
 </div>
 
-<!-- Modal Editar Servicio -->
-<div id="modalEditarServicio" class="modal">
+<!-- Modal Editar Promoción -->
+<div id="modalEditarPromocion" class="modal">
     <div class="modal-content modal-large">
         <div class="modal-header">
-            <h2><i class="fas fa-edit"></i> Editar Servicio</h2>
-            <span class="modal-close" onclick="cerrarModal('modalEditarServicio')">&times;</span>
+            <h2><i class="fas fa-edit"></i> Editar Promoción</h2>
+            <span class="modal-close" onclick="cerrarModal('modalEditarPromocion')">&times;</span>
         </div>
-        <div class="modal-body" id="contenidoEditarServicio">
+        <div class="modal-body" id="contenidoEditarPromocion">
             <div class="loading">Cargando...</div>
         </div>
     </div>
 </div>
 
-<!-- Modal Confirmar Eliminación Servicio -->
-<div id="modalEliminarServicio" class="modal">
+<!-- Modal Confirmar Eliminación Promoción -->
+<div id="modalEliminarPromocion" class="modal">
     <div class="modal-content modal-small">
         <div class="modal-header modal-header-danger">
             <h2><i class="fas fa-exclamation-triangle"></i> Confirmar Eliminación</h2>
-            <span class="modal-close" onclick="cerrarModal('modalEliminarServicio')">&times;</span>
+            <span class="modal-close" onclick="cerrarModal('modalEliminarPromocion')">&times;</span>
         </div>
         <div class="modal-body">
-            <p class="modal-text-center">¿Está seguro de que desea eliminar el servicio <strong id="servicioEliminar"></strong>?</p>
-            <p class="modal-text-muted">Esta acción marcará el servicio como inactivo.</p>
+            <p class="modal-text-center">¿Está seguro de que desea eliminar la promoción <strong id="promocionEliminar"></strong>?</p>
+            <p class="modal-text-muted">Esta acción marcará la promoción como inactiva.</p>
             <div class="modal-actions">
-                <button onclick="cerrarModal('modalEliminarServicio')" class="btn btn-secondary">Cancelar</button>
-                <button onclick="eliminarServicio()" class="btn btn-danger">Eliminar</button>
+                <button onclick="cerrarModal('modalEliminarPromocion')" class="btn btn-secondary">Cancelar</button>
+                <button onclick="eliminarPromocion()" class="btn btn-danger">Eliminar</button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Modal Activar Servicio -->
-<div id="modalActivarServicio" class="modal">
+<!-- Modal Activar Promoción -->
+<div id="modalActivarPromocion" class="modal">
     <div class="modal-content modal-small">
         <div class="modal-header modal-header-success">
             <h2><i class="fas fa-check-circle"></i> Confirmar Activación</h2>
-            <span class="modal-close" onclick="cerrarModal('modalActivarServicio')">&times;</span>
+            <span class="modal-close" onclick="cerrarModal('modalActivarPromocion')">&times;</span>
         </div>
         <div class="modal-body">
-            <p class="modal-text-center">¿Está seguro de que desea activar este servicio?</p>
+            <p class="modal-text-center">¿Está seguro de que desea activar esta promoción?</p>
             <div class="modal-actions">
-                <button onclick="cerrarModal('modalActivarServicio')" class="btn btn-secondary">Cancelar</button>
-                <button onclick="confirmarActivarServicio()" class="btn btn-success">Activar</button>
+                <button onclick="cerrarModal('modalActivarPromocion')" class="btn btn-secondary">Cancelar</button>
+                <button onclick="confirmarActivarPromocion()" class="btn btn-success">Activar</button>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-let servicioIdEliminar = null;
-let servicioIdActivar = null;
+let promocionIdEliminar = null;
+let promocionIdActivar = null;
 
 function cambiarItems(valor) {
     const url = new URL(window.location.href);
@@ -835,47 +850,47 @@ window.onclick = function(event) {
     }
 }
 
-// Ver servicio
-function verServicio(id) {
-    abrirModal('modalVerServicio');
-    fetch(`/servicios/ver/${id}/ajax/`)
+// Ver promoción
+function verPromocion(id) {
+    abrirModal('modalVerPromocion');
+    fetch(`/promociones/ver/${id}/ajax/`)
         .then(response => response.text())
         .then(html => {
-            document.getElementById('contenidoVerServicio').innerHTML = html;
+            document.getElementById('contenidoVerPromocion').innerHTML = html;
         })
         .catch(error => {
-            document.getElementById('contenidoVerServicio').innerHTML = 
-                '<p class="error-message">Error al cargar la información del servicio.</p>';
+            document.getElementById('contenidoVerPromocion').innerHTML = 
+                '<p class="error-message">Error al cargar la información de la promoción.</p>';
         });
 }
 
-// Editar servicio
-function editarServicio(id) {
-    abrirModal('modalEditarServicio');
-    fetch(`/servicios/modificar/${id}/ajax/`)
+// Editar promoción
+function editarPromocion(id) {
+    abrirModal('modalEditarPromocion');
+    fetch(`/promociones/modificar/${id}/ajax/`)
         .then(response => response.text())
         .then(html => {
-            document.getElementById('contenidoEditarServicio').innerHTML = html;
-            inicializarFormularioEditarServicio();
+            document.getElementById('contenidoEditarPromocion').innerHTML = html;
+            inicializarFormularioEditarPromocion();
         })
         .catch(error => {
-            document.getElementById('contenidoEditarServicio').innerHTML = 
+            document.getElementById('contenidoEditarPromocion').innerHTML = 
                 '<p class="error-message">Error al cargar el formulario de edición.</p>';
         });
 }
 
 // Confirmar eliminar
-function confirmarEliminarServicio(id, nombre) {
-    servicioIdEliminar = id;
-    document.getElementById('servicioEliminar').textContent = nombre;
-    abrirModal('modalEliminarServicio');
+function confirmarEliminarPromocion(id, nombre) {
+    promocionIdEliminar = id;
+    document.getElementById('promocionEliminar').textContent = nombre;
+    abrirModal('modalEliminarPromocion');
 }
 
-// Eliminar servicio
-function eliminarServicio() {
-    if (!servicioIdEliminar) return;
+// Eliminar promocion
+function eliminarPromocion() {
+    if (!promocionIdEliminar) return;
     
-    fetch(`/servicios/eliminar/${servicioIdEliminar}/ajax/`, {
+    fetch(`/promociones/eliminar/${promocionIdEliminar}/ajax/`, {
         method: 'POST',
         headers: {
             'X-CSRFToken': getCookie('csrftoken'),
@@ -885,10 +900,10 @@ function eliminarServicio() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            cerrarModal('modalEliminarServicio');
+            cerrarModal('modalEliminarPromocion');
             location.reload();
         } else {
-            alert(data.message || 'Error al eliminar el servicio');
+            alert(data.message || 'Error al eliminar la promoción');
         }
     })
     .catch(error => {
@@ -896,16 +911,16 @@ function eliminarServicio() {
     });
 }
 
-// Activar servicio
-function activarServicio(id) {
-    servicioIdActivar = id;
-    abrirModal('modalActivarServicio');
+// Activar promocion
+function activarPromocion(id) {
+    promocionIdActivar = id;
+    abrirModal('modalActivarPromocion');
 }
 
-function confirmarActivarServicio() {
-    if (!servicioIdActivar) return;
+function confirmarActivarPromocion() {
+    if (!promocionIdActivar) return;
     
-    fetch(`/servicios/activar/${servicioIdActivar}/ajax/`, {
+    fetch(`/promociones/activar/${promocionIdActivar}/ajax/`, {
         method: 'POST',
         headers: {
             'X-CSRFToken': getCookie('csrftoken'),
@@ -915,10 +930,10 @@ function confirmarActivarServicio() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            cerrarModal('modalActivarServicio');
+            cerrarModal('modalActivarPromocion');
             location.reload();
         } else {
-            alert(data.message || 'Error al activar el servicio');
+            alert(data.message || 'Error al activar la promoción');
         }
     })
     .catch(error => {
@@ -943,16 +958,16 @@ function getCookie(name) {
 }
 
 // Inicializar formulario de edición
-function inicializarFormularioEditarServicio() {
-    const form = document.getElementById('formEditarServicio');
+function inicializarFormularioEditarPromocion() {
+    const form = document.getElementById('formEditarPromocion');
     if (form) {
         form.addEventListener('submit', function(e) {
             e.preventDefault();
             
             const formData = new FormData(form);
-            const servicioId = form.dataset.servicioId;
+            const promocionId = form.dataset.promocionId;
             
-            fetch(`/servicios/modificar/${servicioId}/ajax/`, {
+            fetch(`/promociones/modificar/${promocionId}/ajax/`, {
                 method: 'POST',
                 body: formData,
                 headers: {
@@ -962,7 +977,7 @@ function inicializarFormularioEditarServicio() {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    cerrarModal('modalEditarServicio');
+                    cerrarModal('modalEditarPromocion');
                     location.reload();
                 } else {
                     if (data.errors) {

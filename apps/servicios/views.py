@@ -357,7 +357,6 @@ def modificar_servicio(request, id):
     
     return render(request, 'servicios/modificar_servicio.html', {'form': form, 'servicio': servicio})
 
-
 # CU-39: Buscar Servicio
 @user_passes_test(es_administrador)
 def buscar_servicio(request):
@@ -640,3 +639,29 @@ def activar_categoria_ajax(request, id):
             })
     
     return JsonResponse({'success': False, 'message': 'Método no permitido'})
+
+
+# APIs para obtener datos (usadas en modales de promociones)
+def api_categorias(request):
+    """API para obtener todas las categorías activas"""
+    from django.http import JsonResponse
+    
+    categorias = Categoria.objects.filter(activa=True).values('id', 'nombre', 'descripcion')
+    return JsonResponse(list(categorias), safe=False)
+
+
+def api_servicios(request):
+    """API para obtener todos los servicios activos con su categoría"""
+    from django.http import JsonResponse
+    
+    servicios = Servicio.objects.filter(
+        activo=True,
+        categoria__activa=True
+    ).select_related('categoria').values(
+        'id', 
+        'nombre', 
+        'descripcion',
+        'categoria',
+        'categoria__nombre'
+    )
+    return JsonResponse(list(servicios), safe=False)

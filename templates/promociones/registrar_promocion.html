@@ -1,0 +1,746 @@
+{% extends 'base.html' %}
+
+{% block title %}Registrar Promoción - ServiHogar{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <div class="form-header">
+        <h1>Registrar Nueva Promoción</h1>
+        <p>Complete el formulario para crear una nueva promoción</p>
+    </div>
+    
+    <div class="form-card">
+        <form method="post" class="styled-form">
+            {% csrf_token %}
+            
+            <div class="form-section">
+                <h3>Información Básica</h3>
+                
+                <div class="form-group">
+                    <label for="{{ form.titulo.id_for_label }}">{{ form.titulo.label }}</label>
+                    {{ form.titulo }}
+                    {% if form.titulo.errors %}
+                        <span class="error">{{ form.titulo.errors.0 }}</span>
+                    {% endif %}
+                </div>
+                
+                <div class="form-group">
+                    <label for="{{ form.descripcion.id_for_label }}">{{ form.descripcion.label }}</label>
+                    {{ form.descripcion }}
+                    {% if form.descripcion.errors %}
+                        <span class="error">{{ form.descripcion.errors.0 }}</span>
+                    {% endif %}
+                </div>
+                
+                <div class="form-group">
+                    <label for="{{ form.codigo.id_for_label }}">{{ form.codigo.label }}</label>
+                    {{ form.codigo }}
+                    {% if form.codigo.errors %}
+                        <span class="error">{{ form.codigo.errors.0 }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="form-section">
+                <h3>Configuración del Descuento</h3>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="{{ form.tipo_descuento.id_for_label }}">{{ form.tipo_descuento.label }}</label>
+                        {{ form.tipo_descuento }}
+                        {% if form.tipo_descuento.errors %}
+                            <span class="error">{{ form.tipo_descuento.errors.0 }}</span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="{{ form.valor_descuento.id_for_label }}">{{ form.valor_descuento.label }}</label>
+                        {{ form.valor_descuento }}
+                        {% if form.valor_descuento.errors %}
+                            <span class="error">{{ form.valor_descuento.errors.0 }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-section">
+                <h3>Condiciones de Aplicación</h3>
+                
+                <div class="form-group">
+                    <label for="{{ form.categoria.id_for_label }}">{{ form.categoria.label }}</label>
+                    {{ form.categoria }}
+                    {% if form.categoria.errors %}
+                        <span class="error">{{ form.categoria.errors.0 }}</span>
+                    {% endif %}
+                </div>
+                
+                <div class="form-group">
+                    <label for="{{ form.servicios.id_for_label }}">{{ form.servicios.label }}</label>
+                    <div class="checkbox-group">
+                        {% for checkbox in form.servicios %}
+                            <div class="checkbox-item">
+                                {{ checkbox.tag }}
+                                <label for="{{ checkbox.id_for_label }}">{{ checkbox.choice_label }}</label>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    {% if form.servicios.errors %}
+                        <span class="error">{{ form.servicios.errors.0 }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="form-section">
+                <h3>Período de Vigencia</h3>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="{{ form.fecha_inicio.id_for_label }}">{{ form.fecha_inicio.label }}</label>
+                        {{ form.fecha_inicio }}
+                        {% if form.fecha_inicio.errors %}
+                            <span class="error">{{ form.fecha_inicio.errors.0 }}</span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="{{ form.fecha_fin.id_for_label }}">{{ form.fecha_fin.label }}</label>
+                        {{ form.fecha_fin }}
+                        {% if form.fecha_fin.errors %}
+                            <span class="error">{{ form.fecha_fin.errors.0 }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-section">
+                <h3>Estado de la Promoción</h3>
+                
+                <div class="form-group">
+                    <label for="{{ form.activa.id_for_label }}">{{ form.activa.label }}</label>
+                    {{ form.activa }}
+                    {% if form.activa.errors %}
+                        <span class="error">{{ form.activa.errors.0 }}</span>
+                    {% endif %}
+                </div>
+            </div>      
+                </div>
+                
+                <!-- Sección 2: Configuración del Descuento -->
+                <div class="form-section">
+                    <h2 class="section-title">
+                        <i class="fas fa-percent"></i>
+                        Configuración del Descuento
+                    </h2>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="{{ form.tipo_descuento.id_for_label }}">
+                                {{ form.tipo_descuento.label }}
+                                <span class="required">*</span>
+                            </label>
+                            {{ form.tipo_descuento }}
+                            {% if form.tipo_descuento.errors %}
+                                <ul class="errorlist">
+                                    {% for error in form.tipo_descuento.errors %}
+                                        <li>{{ error }}</li>
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="{{ form.valor_descuento.id_for_label }}">
+                                {{ form.valor_descuento.label }}
+                                <span class="required">*</span>
+                            </label>
+                            {{ form.valor_descuento }}
+                            <small class="form-help" id="valor-help">Ingrese el valor del descuento</small>
+                            {% if form.valor_descuento.errors %}
+                                <ul class="errorlist">
+                                    {% for error in form.valor_descuento.errors %}
+                                        <li>{{ error }}</li>
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Sección 3: Condiciones de Aplicación -->
+                <div class="form-section">
+                    <h2 class="section-title">
+                        <i class="fas fa-filter"></i>
+                        Condiciones de Aplicación
+                    </h2>
+                    <div class="section-description">
+                        Seleccione la categoría y/o servicios específicos donde aplicará la promoción
+                    </div>
+                    
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <div>
+                            <strong>Importante:</strong> Si selecciona una categoría pero no servicios específicos, la promoción se aplicará a todos los servicios de esa categoría.
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="{{ form.categoria.id_for_label }}">
+                            <i class="fas fa-folder"></i> {{ form.categoria.label }}
+                        </label>
+                        {{ form.categoria }}
+                        <small class="form-help">{{ form.categoria.help_text }}</small>
+                        {% if form.categoria.errors %}
+                            <ul class="errorlist">
+                                {% for error in form.categoria.errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="{{ form.servicios.id_for_label }}">
+                            <i class="fas fa-tasks"></i> {{ form.servicios.label }}
+                        </label>
+                        <small class="form-help" style="margin-bottom: 1rem;"><i class="fas fa-info-circle"></i> Selecciona primero una categoría para ver los servicios disponibles</small>
+                        
+                        <!-- Mensaje cuando no hay categoría seleccionada -->
+                        <div id="mensajeSeleccionarCategoria" style="padding: 15px; background-color: #e8f4fd; border-left: 4px solid #4296f4; margin-bottom: 15px; border-radius: 4px;">
+                            <i class="fas fa-info-circle" style="color: #4296f4; margin-right: 8px;"></i>
+                            <span style="color: #2c3e50;">Primero selecciona una categoría para filtrar los servicios disponibles</span>
+                        </div>
+                        
+                        <div class="servicios-container" id="serviciosContainer" style="display: none;">
+                            {% for servicio in form.fields.servicios.queryset %}
+                            <div class="servicio-item" data-categoria="{{ servicio.categoria.id }}">
+                                <label class="servicio-label">
+                                    <input type="checkbox" 
+                                           name="servicios" 
+                                           value="{{ servicio.id }}" 
+                                           id="id_servicios_{{ servicio.id }}"
+                                           class="servicio-checkbox">
+                                    <span class="servicio-nombre">{{ servicio.nombre }}</span>
+                                    <span class="servicio-categoria">{{ servicio.categoria.nombre }}</span>
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% if form.servicios.errors %}
+                            <ul class="errorlist">
+                                {% for error in form.servicios.errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Sección 4: Período de Vigencia -->
+                <div class="form-section">
+                    <h2 class="section-title">
+                        <i class="fas fa-calendar-alt"></i>
+                        Período de Vigencia
+                    </h2>
+                    <div class="section-description">
+                        Defina el período en el que la promoción estará activa. El sistema validará que las fechas sean coherentes.
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="{{ form.fecha_inicio.id_for_label }}">
+                                {{ form.fecha_inicio.label }}
+                                <span class="required">*</span>
+                            </label>
+                            {{ form.fecha_inicio }}
+                            {% if form.fecha_inicio.errors %}
+                                <ul class="errorlist">
+                                    {% for error in form.fecha_inicio.errors %}
+                                        <li>{{ error }}</li>
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="{{ form.fecha_fin.id_for_label }}">
+                                {{ form.fecha_fin.label }}
+                                <span class="required">*</span>
+                            </label>
+                            {{ form.fecha_fin }}
+                            {% if form.fecha_fin.errors %}
+                                <ul class="errorlist">
+                                    {% for error in form.fecha_fin.errors %}
+                                        <li>{{ error }}</li>
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Sección 5: Estado -->
+                <div class="form-section">
+                    <h2 class="section-title">
+                        <i class="fas fa-toggle-on"></i>
+                        Estado de la Promoción
+                    </h2>
+                    
+                    <div class="form-group">
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <label class="switch">
+                                {{ form.activa }}
+                                <span class="slider"></span>
+                            </label>
+                            <span class="toggle-text" style="font-size: 1.1rem; font-weight: 600; color: #495057;">Activa</span>
+                        </div>
+                        <small class="form-help" style="margin-top: 12px; display: block;"><i class="fas fa-info-circle"></i> Si está activa, la promoción será visible y aplicable inmediatamente cuando inicie su período de vigencia</small>
+                        {% if form.activa.errors %}
+                            <ul class="errorlist">
+                                {% for error in form.activa.errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                    </div>
+            </div>
+            
+            <!-- Errores no de campo -->
+            {% if form.non_field_errors %}
+                <div class="form-section">
+                    <span class="error">{{ form.non_field_errors.0 }}</span>
+                </div>
+            {% endif %}
+            
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Registrar Promoción</button>
+                <a href="{% url 'promociones:buscar_promocion' %}" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.form-container {
+    max-width: 900px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+.form-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.form-header h1 {
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+}
+
+.form-header p {
+    color: #666;
+}
+
+.form-card {
+    background: white;
+    border-radius: 8px;
+    padding: 2rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.styled-form {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.form-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.form-section h3 {
+    color: #2c3e50;
+    margin: 0;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #17a2b8;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+}
+
+.form-group input[type="text"],
+.form-group input[type="number"],
+.form-group input[type="datetime-local"],
+.form-group textarea,
+.form-group select {
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+    font-family: inherit;
+    color: #333 !important;
+    background-color: #fff !important;
+}
+
+.form-group select option {
+    color: #333 !important;
+    background-color: #fff !important;
+}
+
+/* Estilos específicos para asegurar visibilidad del texto en selects */
+#id_categoria, #id_tipo_descuento {
+    color: #2c3e50 !important;
+    background-color: #ffffff !important;
+    font-weight: 500;
+}
+
+#id_categoria option, #id_tipo_descuento option {
+    color: #2c3e50 !important;
+    background-color: #ffffff !important;
+    padding: 8px;
+}
+
+.form-group input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+}
+
+.checkbox-group {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 0.8rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 4px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.checkbox-item input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.checkbox-item label {
+    margin: 0;
+    font-weight: 400;
+    cursor: pointer;
+    color: #333;
+}
+
+/* Estilos para lista de checkboxes (servicios) */
+.form-group ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.form-group ul li {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.form-group ul li:last-child {
+    border-bottom: none;
+}
+
+.form-group ul li label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    margin: 0;
+    font-weight: normal;
+    color: #333;
+}
+
+.form-group ul li input[type="checkbox"] {
+    margin-right: 10px;
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.form-group ul li:hover {
+    background-color: #f0f8ff;
+}
+
+/* Estilos para contenedor de servicios mejorado */
+.servicios-container {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+}
+
+/* Ocultar servicios por defecto */
+.servicio-item {
+    padding: 12px 15px;
+    border-bottom: 1px solid #f0f0f0;
+    transition: all 0.3s ease;
+    /* JavaScript controlará la visibilidad */
+}
+
+.servicio-item:last-child {
+    border-bottom: none;
+}
+
+.servicio-item:hover {
+    background: linear-gradient(90deg, #f8f9ff 0%, #ffffff 100%);
+    border-left: 3px solid #667eea;
+    padding-left: 12px;
+}
+
+.servicio-label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    margin: 0;
+    font-weight: normal;
+    gap: 12px;
+}
+
+.servicio-checkbox {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: #667eea;
+    flex-shrink: 0;
+}
+
+.servicio-nombre {
+    flex: 1;
+    color: #2c3e50;
+    font-size: 0.95rem;
+}
+
+.servicio-categoria {
+    color: #667eea;
+    font-size: 0.8rem;
+    background: rgba(102, 126, 234, 0.1);
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-weight: 500;
+}
+
+/* Toggle Switch Animado */
+.toggle-container {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-top: 12px;
+}
+
+/* Toggle Switch Moderno */
+.switch {
+    --button-width: 3.5em;
+    --button-height: 2em;
+    --toggle-diameter: 1.5em;
+    --button-toggle-offset: calc((var(--button-height) - var(--toggle-diameter)) / 2);
+    --toggle-shadow-offset: 10px;
+    --toggle-wider: 3em;
+    --color-grey: #cccccc;
+    --color-green: #4296f4;
+    display: inline-block;
+}
+
+.slider {
+    display: inline-block;
+    width: var(--button-width);
+    height: var(--button-height);
+    background-color: var(--color-grey);
+    border-radius: calc(var(--button-height) / 2);
+    position: relative;
+    transition: 0.3s all ease-in-out;
+    cursor: pointer;
+}
+
+.slider::after {
+    content: "";
+    display: inline-block;
+    width: var(--toggle-diameter);
+    height: var(--toggle-diameter);
+    background-color: #fff;
+    border-radius: calc(var(--toggle-diameter) / 2);
+    position: absolute;
+    top: var(--button-toggle-offset);
+    transform: translateX(var(--button-toggle-offset));
+    box-shadow: var(--toggle-shadow-offset) 0 calc(var(--toggle-shadow-offset) * 4) rgba(0, 0, 0, 0.1);
+    transition: 0.3s all ease-in-out;
+}
+
+.switch input[type="checkbox"]:checked + .slider {
+    background-color: var(--color-green);
+}
+
+.switch input[type="checkbox"]:checked + .slider::after {
+    transform: translateX(calc(var(--button-width) - var(--toggle-diameter) - var(--button-toggle-offset)));
+    box-shadow: calc(var(--toggle-shadow-offset) * -1) 0 calc(var(--toggle-shadow-offset) * 4) rgba(0, 0, 0, 0.1);
+}
+
+.switch input[type="checkbox"] {
+    display: none;
+}
+
+.switch input[type="checkbox"]:active + .slider::after {
+    width: var(--toggle-wider);
+}
+
+.switch input[type="checkbox"]:checked:active + .slider::after {
+    transform: translateX(calc(var(--button-width) - var(--toggle-wider) - var(--button-toggle-offset)));
+}
+
+.toggle-text {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #495057 !important;
+    transition: color 0.3s;
+}
+
+.switch input[type="checkbox"]:checked ~ .toggle-text {
+    color: #28a745 !important;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.error {
+    color: #dc3545;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    padding-top: 1rem;
+    border-top: 1px solid #dee2e6;
+}
+
+.btn {
+    padding: 0.75rem 2rem;
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    font-size: 1rem;
+}
+
+.btn-primary {
+    background: #17a2b8;
+    color: white;
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+@media (max-width: 768px) {
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .checkbox-group {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+<script>
+// Filtrar servicios por categoría seleccionada
+(function() {
+    // Ocultar todos los servicios inmediatamente al cargar
+    document.querySelectorAll('.servicio-item').forEach(item => {
+        item.style.display = 'none';
+    });
+    
+    function inicializarFiltroServicios() {
+        const categoriaSelect = document.getElementById('id_categoria');
+        const mensajeCategoria = document.getElementById('mensajeSeleccionarCategoria');
+        const serviciosContainer = document.getElementById('serviciosContainer');
+        
+        if (categoriaSelect) {
+            // Función para filtrar servicios
+            function filtrarServicios() {
+                const categoriaId = categoriaSelect.value;
+                const servicioItems = document.querySelectorAll('.servicio-item');
+                let serviciosVisibles = 0;
+                
+                if (!categoriaId || categoriaId === '') {
+                    // Si no hay categoría seleccionada, mostrar mensaje y ocultar servicios
+                    if (mensajeCategoria) mensajeCategoria.style.display = 'block';
+                    if (serviciosContainer) serviciosContainer.style.display = 'none';
+                    servicioItems.forEach(item => item.style.display = 'none');
+                } else {
+                    // Ocultar mensaje y mostrar container de servicios
+                    if (mensajeCategoria) mensajeCategoria.style.display = 'none';
+                    if (serviciosContainer) serviciosContainer.style.display = 'block';
+                    
+                    // Filtrar servicios por categoría
+                    servicioItems.forEach(item => {
+                        if (item.dataset.categoria === categoriaId) {
+                            item.style.display = 'block';
+                            serviciosVisibles++;
+                        } else {
+                            item.style.display = 'none';
+                        }
+                    });
+                }
+                
+                console.log('Categoría ID:', categoriaId, '| Servicios visibles:', serviciosVisibles);
+            }
+            
+            // Remover listener anterior si existe
+            categoriaSelect.removeEventListener('change', filtrarServicios);
+            
+            // Agregar listener
+            categoriaSelect.addEventListener('change', filtrarServicios);
+            
+            // Disparar el filtro inicial
+            filtrarServicios();
+        }
+    }
+    
+    // Inicializar cuando el DOM esté listo
+    document.addEventListener('DOMContentLoaded', inicializarFiltroServicios);
+    
+    // Cambiar texto del toggle según estado
+    function inicializarToggle() {
+        const toggleCheckbox = document.getElementById('id_activa');
+        const toggleText = document.querySelector('.toggle-text');
+        
+        if (toggleCheckbox && toggleText) {
+            toggleCheckbox.addEventListener('change', function() {
+                toggleText.textContent = this.checked ? 'Activa' : 'Inactiva';
+                toggleText.style.color = this.checked ? '#28a745' : '#495057';
+            });
+        }
+    }
+    
+    document.addEventListener('DOMContentLoaded', inicializarToggle);
+})();
+</script>
+{% endblock %}

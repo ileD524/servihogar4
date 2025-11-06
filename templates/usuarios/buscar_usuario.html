@@ -423,19 +423,19 @@
                         </td>
                         <td>
                             <div class="acciones-btns">
-                                <button onclick="verUsuario({{ usuario.id }})" class="btn btn-sm btn-icon" title="Ver perfil">
+                                <button onclick="verUsuario(usuario.id)" class="btn btn-sm btn-icon" title="Ver perfil">
                                     <i class="fas fa-eye"></i>
                                 </button>
                                 {% if usuario.rol != 'administrador' %}
-                                    <button onclick="editarUsuario({{ usuario.id }})" class="btn btn-sm btn-icon btn-primary" title="Editar">
+                                    <button onclick="editarUsuario(usuario.id)" class="btn btn-sm btn-icon btn-primary" title="Editar">
                                         <i class="fas fa-edit"></i>
                                     </button>
                                     {% if usuario.activo %}
-                                        <button onclick="confirmarEliminar({{ usuario.id }}, '{{ usuario.username }}')" class="btn btn-sm btn-icon btn-danger" title="Eliminar">
+                                        <button onclick="confirmarEliminar(usuario.id, '{{ usuario.username }}')" class="btn btn-sm btn-icon btn-danger" title="Eliminar">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     {% else %}
-                                        <button onclick="activarUsuario({{ usuario.id }})" class="btn btn-sm btn-icon btn-success" title="Activar">
+                                        <button onclick="activarUsuario(usuario.id)" class="btn btn-sm btn-icon btn-success" title="Activar">
                                             <i class="fas fa-check"></i>
                                         </button>
                                     {% endif %}
@@ -451,18 +451,29 @@
         
         <div class="table-footer">
             <div class="showing-info">
-                Mostrando registros del 1 al {{ usuarios.count }} de un total de {{ usuarios.count }} registros
+                Mostrando {{ page_obj.start_index }} a {{ page_obj.end_index }} de {{ page_obj.paginator.count }} usuario(s)
             </div>
+            
+            {% if page_obj.has_other_pages %}
             <div class="pagination">
-                <button class="page-btn" disabled>Anterior</button>
-                <button class="page-btn active">1</button>
-                <button class="page-btn" disabled>Siguiente</button>
+                {% if page_obj.has_previous %}
+                    <a href="?page=1{% if request.GET.nombre %}&nombre={{ request.GET.nombre }}{% endif %}{% if request.GET.categoria %}&categoria={{ request.GET.categoria }}{% endif %}{% if request.GET.estado %}&estado={{ request.GET.estado }}{% endif %}{% if request.GET.items %}&items={{ request.GET.items }}{% endif %}{% if request.GET.orden %}&orden={{ request.GET.orden }}{% endif %}{% if request.GET.dir %}&dir={{ request.GET.dir }}{% endif %}" class="page-link">« Primera</a>
+                    <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.nombre %}&nombre={{ request.GET.nombre }}{% endif %}{% if request.GET.categoria %}&categoria={{ request.GET.categoria }}{% endif %}{% if request.GET.estado %}&estado={{ request.GET.estado }}{% endif %}{% if request.GET.items %}&items={{ request.GET.items }}{% endif %}{% if request.GET.orden %}&orden={{ request.GET.orden }}{% endif %}{% if request.GET.dir %}&dir={{ request.GET.dir }}{% endif %}" class="page-link">‹ Anterior</a>
+                {% endif %}
+                
+                <span class="page-current">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+                
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}{% if request.GET.nombre %}&nombre={{ request.GET.nombre }}{% endif %}{% if request.GET.categoria %}&categoria={{ request.GET.categoria }}{% endif %}{% if request.GET.estado %}&estado={{ request.GET.estado }}{% endif %}{% if request.GET.items %}&items={{ request.GET.items }}{% endif %}{% if request.GET.orden %}&orden={{ request.GET.orden }}{% endif %}{% if request.GET.dir %}&dir={{ request.GET.dir }}{% endif %}" class="page-link">Siguiente ›</a>
+                    <a href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.nombre %}&nombre={{ request.GET.nombre }}{% endif %}{% if request.GET.categoria %}&categoria={{ request.GET.categoria }}{% endif %}{% if request.GET.estado %}&estado={{ request.GET.estado }}{% endif %}{% if request.GET.items %}&items={{ request.GET.items }}{% endif %}{% if request.GET.orden %}&orden={{ request.GET.orden }}{% endif %}{% if request.GET.dir %}&dir={{ request.GET.dir }}{% endif %}" class="page-link">Última »</a>
+                {% endif %}
             </div>
+            {% endif %}
         </div>
         {% else %}
         <div class="no-resultados">
-            <p>No se encontraron usuarios con los criterios especificados</p>
-            <a href="{% url 'usuarios:buscar_usuario' %}" class="btn btn-secondary">Limpiar filtros</a>
+            <p>No se encontraron usuarios</p>
+            <a href="{% url 'usuarios:registrar_usuario_admin' %}" class="btn btn-primary">Registrar Usuario</a>
         </div>
         {% endif %}
     </div>

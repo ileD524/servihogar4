@@ -30,4 +30,8 @@ urlpatterns = [
     path('categorias/modificar/<int:id>/ajax/', views.modificar_categoria_ajax, name='modificar_categoria_ajax'),
     path('categorias/eliminar/<int:id>/ajax/', views.eliminar_categoria_ajax, name='eliminar_categoria_ajax'),
     path('categorias/activar/<int:id>/ajax/', views.activar_categoria_ajax, name='activar_categoria_ajax'),
+    
+    # APIs públicas (para modales de promociones)
+    path('api/categorias/', views.api_categorias, name='api_categorias'),
+    path('api/servicios/', views.api_servicios, name='api_servicios'),
 ]

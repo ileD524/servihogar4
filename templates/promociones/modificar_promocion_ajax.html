@@ -1,121 +1,147 @@
-<form id="formEditarPromocion" method="post" data-promocion-id="{{ promocion.id }}">
+{% load static %}
+
+<form method="post" id="formModificarPromocion">
     {% csrf_token %}
     
-    <div class="form-grid">
-        <!-- Información Básica -->
-        <div class="form-section">
-            <h4 class="form-section-title"><i class="fas fa-info-circle"></i> Información Básica</h4>
-            
-            <div class="form-group">
-                <label for="id_titulo">Título *</label>
-                {{ form.titulo }}
-                {% if form.titulo.errors %}
-                    <div class="field-error">{{ form.titulo.errors.0 }}</div>
-                {% endif %}
-            </div>
-            
-            <div class="form-group">
-                <label for="id_descripcion">Descripción *</label>
-                {{ form.descripcion }}
-                {% if form.descripcion.errors %}
-                    <div class="field-error">{{ form.descripcion.errors.0 }}</div>
-                {% endif %}
-            </div>
-            
-            <div class="form-group">
-                <label for="id_codigo">Código</label>
-                {{ form.codigo }}
-                {% if form.codigo.errors %}
-                    <div class="field-error">{{ form.codigo.errors.0 }}</div>
-                {% endif %}
-                <small style="color: #666; display: block; margin-top: 5px;">
-                    Código único para identificar la promoción
-                </small>
-            </div>
+    <div class="form-section">
+        <h4 class="section-title">
+            <i class="fas fa-info-circle"></i> Información Básica
+        </h4>
+        
+        <div class="form-group">
+            <label for="id_titulo">
+                <i class="fas fa-tag"></i> Título *
+            </label>
+            {{ form.titulo }}
+            <div class="error-message" id="error_titulo"></div>
         </div>
         
-        <!-- Descuento -->
-        <div class="form-section">
-            <h4 class="form-section-title"><i class="fas fa-tag"></i> Descuento</h4>
-            
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="id_tipo_descuento">Tipo de Descuento *</label>
-                    {{ form.tipo_descuento }}
-                    {% if form.tipo_descuento.errors %}
-                        <div class="field-error">{{ form.tipo_descuento.errors.0 }}</div>
-                    {% endif %}
-                </div>
-                
-                <div class="form-group">
-                    <label for="id_valor_descuento">Valor del Descuento *</label>
-                    {{ form.valor_descuento }}
-                    {% if form.valor_descuento.errors %}
-                        <div class="field-error">{{ form.valor_descuento.errors.0 }}</div>
-                    {% endif %}
-                </div>
-            </div>
+        <div class="form-group">
+            <label for="id_descripcion">
+                <i class="fas fa-align-left"></i> Descripción *
+            </label>
+            {{ form.descripcion }}
+            <div class="error-message" id="error_descripcion"></div>
         </div>
         
-        <!-- Categoría y Servicios -->
-        <div class="form-section">
-            <h4 class="form-section-title"><i class="fas fa-list"></i> Categoría y Servicios</h4>
-            
-            <div class="form-group">
-                <label for="id_categoria">Categoría *</label>
-                {{ form.categoria }}
-                {% if form.categoria.errors %}
-                    <div class="field-error">{{ form.categoria.errors.0 }}</div>
-                {% endif %}
-            </div>
-            
-            <div class="form-group">
-                <label for="id_servicios">Servicios Incluidos</label>
-                <div style="max-height: 200px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 4px;">
-                    {{ form.servicios }}
-                </div>
-                {% if form.servicios.errors %}
-                    <div class="field-error">{{ form.servicios.errors.0 }}</div>
-                {% endif %}
-                <small style="color: #666; display: block; margin-top: 5px;">
-                    Mantén presionada la tecla Ctrl (Cmd en Mac) para seleccionar múltiples servicios
-                </small>
-            </div>
+        <div class="form-group">
+            <label for="id_codigo">
+                <i class="fas fa-barcode"></i> Código
+            </label>
+            {{ form.codigo }}
+            <small class="form-text">Código único para identificar la promoción (opcional)</small>
+            <div class="error-message" id="error_codigo"></div>
         </div>
+    </div>
+    
+    <div class="form-section">
+        <h4 class="section-title">
+            <i class="fas fa-percent"></i> Descuento
+        </h4>
         
-        <!-- Vigencia -->
-        <div class="form-section">
-            <h4 class="form-section-title"><i class="fas fa-calendar"></i> Vigencia</h4>
-            
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="id_fecha_inicio">Fecha de Inicio *</label>
-                    {{ form.fecha_inicio }}
-                    {% if form.fecha_inicio.errors %}
-                        <div class="field-error">{{ form.fecha_inicio.errors.0 }}</div>
-                    {% endif %}
-                </div>
-                
-                <div class="form-group">
-                    <label for="id_fecha_fin">Fecha de Fin *</label>
-                    {{ form.fecha_fin }}
-                    {% if form.fecha_fin.errors %}
-                        <div class="field-error">{{ form.fecha_fin.errors.0 }}</div>
-                    {% endif %}
-                </div>
-            </div>
-            
+        <div class="form-row">
             <div class="form-group">
-                <label for="id_activa">
-                    <input type="checkbox" name="activa" id="id_activa" {% if promocion.activa %}checked{% endif %}>
-                    Promoción Activa
+                <label for="id_tipo_descuento">
+                    <i class="fas fa-tag"></i> Tipo de Descuento *
                 </label>
+                {{ form.tipo_descuento }}
+                <div class="error-message" id="error_tipo_descuento"></div>
+            </div>
+            
+            <div class="form-group">
+                <label for="id_valor_descuento">
+                    <i class="fas fa-dollar-sign"></i> Valor del Descuento *
+                </label>
+                {{ form.valor_descuento }}
+                <div class="error-message" id="error_valor_descuento"></div>
             </div>
         </div>
     </div>
     
-    <div class="modal-actions" style="margin-top: 30px;">
-        <button type="button" onclick="cerrarModal('modalEditarPromocion')" class="btn btn-secondary">
+    <div class="form-section">
+        <h4 class="section-title">
+            <i class="fas fa-list-check"></i> Categoría y Servicios
+        </h4>
+        
+        <div class="form-group">
+            <label for="id_categoria">
+                <i class="fas fa-folder"></i> Categoría *
+            </label>
+            {{ form.categoria }}
+            <div class="error-message" id="error_categoria"></div>
+        </div>
+        
+        <div class="form-group">
+            <label for="id_servicios">
+                <i class="fas fa-tasks"></i> Servicios Incluidos
+            </label>
+            <div id="mensajeSeleccionarCategoria" class="mensaje-info">
+                <i class="fas fa-info-circle"></i>
+                <p>Primero selecciona una categoría para ver los servicios disponibles</p>
+            </div>
+            <div class="servicios-container" id="serviciosContainer" style="display: none;">
+                {% for servicio in form.fields.servicios.queryset %}
+                <div class="servicio-item" data-categoria="{{ servicio.categoria.id }}">
+                    <label class="servicio-label">
+                        <input type="checkbox" 
+                               name="servicios" 
+                               value="{{ servicio.id }}" 
+                               id="id_servicios_{{ servicio.id }}"
+                               {% if servicio in promocion.servicios.all %}checked{% endif %}
+                               class="servicio-checkbox">
+                        <span class="servicio-nombre">{{ servicio.nombre }}</span>
+                        <span class="servicio-categoria">{{ servicio.categoria.nombre }}</span>
+                    </label>
+                </div>
+                {% endfor %}
+            </div>
+            <small class="form-text">
+                <i class="fas fa-info-circle"></i> Selecciona primero una categoría, luego los servicios específicos
+            </small>
+            <div class="error-message" id="error_servicios"></div>
+        </div>
+    </div>
+    
+    <div class="form-section">
+        <h4 class="section-title">
+            <i class="fas fa-calendar-alt"></i> Vigencia
+        </h4>
+        
+        <div class="form-row">
+            <div class="form-group">
+                <label for="id_fecha_inicio">
+                    <i class="far fa-calendar-plus"></i> Fecha de Inicio *
+                </label>
+                {{ form.fecha_inicio }}
+                <div class="error-message" id="error_fecha_inicio"></div>
+            </div>
+            
+            <div class="form-group">
+                <label for="id_fecha_fin">
+                    <i class="far fa-calendar-check"></i> Fecha de Fin *
+                </label>
+                {{ form.fecha_fin }}
+                <div class="error-message" id="error_fecha_fin"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="form-section">
+        <h4 class="section-title">
+            <i class="fas fa-toggle-on"></i> Estado
+        </h4>
+        
+        <div class="form-group checkbox-group">
+            {{ form.activa }}
+            <label for="id_activa">
+                Promoción Activa
+            </label>
+            <div class="error-message" id="error_activa"></div>
+        </div>
+    </div>
+    
+    <div class="modal-buttons">
+        <button type="button" class="btn btn-secondary" onclick="cerrarModal('modalEditarPromocion')">
             <i class="fas fa-times"></i> Cancelar
         </button>
         <button type="submit" class="btn btn-primary">
@@ -125,44 +151,46 @@
 </form>
 
 <style>
-.form-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 25px;
-}
-
 .form-section {
-    background: #f8f9fa;
+    margin-bottom: 25px;
     padding: 20px;
+    background: #f8f9fa;
     border-radius: 8px;
-    border-left: 4px solid #667eea;
 }
 
-.form-section-title {
-    color: #667eea;
-    margin: 0 0 15px 0;
+.section-title {
     font-size: 1.1rem;
-    display: flex;
-    align-items: center;
-    gap: 10px;
+    color: #495057;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #667eea;
+}
+
+.section-title i {
+    color: #667eea;
+    margin-right: 8px;
+}
+
+.form-group {
+    margin-bottom: 20px;
 }
 
 .form-row {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 15px;
-    margin-bottom: 15px;
-}
-
-.form-group {
-    display: flex;
-    flex-direction: column;
 }
 
 .form-group label {
-    font-weight: 500;
-    margin-bottom: 5px;
-    color: #333;
+    display: block;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #495057;
+}
+
+.form-group label i {
+    color: #667eea;
+    margin-right: 5px;
 }
 
 .form-group input[type="text"],
@@ -171,11 +199,19 @@
 .form-group input[type="datetime-local"],
 .form-group select,
 .form-group textarea {
+    width: 100%;
     padding: 10px;
-    border: 1px solid #ddd;
+    border: 1px solid #ced4da;
     border-radius: 4px;
-    font-size: 0.95rem;
+    font-size: 1rem;
+    color: #495057;
+    background-color: #fff;
     transition: border-color 0.3s;
+}
+
+.form-group textarea {
+    min-height: 100px;
+    resize: vertical;
 }
 
 .form-group input:focus,
@@ -183,14 +219,253 @@
 .form-group textarea:focus {
     outline: none;
     border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
 }
 
-.form-group textarea {
-    resize: vertical;
-    min-height: 80px;
+.checkbox-group {
+    display: flex;
+    align-items: center;
 }
 
-select[multiple] {
-    min-height: 150px;
+.checkbox-group input[type="checkbox"] {
+    width: auto;
+    margin-right: 10px;
+    transform: scale(1.3);
+    cursor: pointer;
+}
+
+.checkbox-group label {
+    margin-bottom: 0;
+    cursor: pointer;
+}
+
+.form-text {
+    display: block;
+    margin-top: 5px;
+    font-size: 0.875rem;
+    color: #6c757d;
+    font-style: italic;
+}
+
+.mensaje-info {
+    padding: 20px;
+    text-align: center;
+    color: #6c757d;
+    background: #f8f9fa;
+    border: 2px dashed #dee2e6;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+
+.mensaje-info i {
+    font-size: 2rem;
+    color: #667eea;
+    display: block;
+    margin-bottom: 10px;
+}
+
+.mensaje-info p {
+    margin: 0;
+    font-weight: 500;
+}
+
+.servicios-container {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+    margin-bottom: 10px;
+}
+
+.servicio-item {
+    padding: 12px 15px;
+    border-bottom: 1px solid #f0f0f0;
+    transition: all 0.3s ease;
+}
+
+.servicio-item:last-child {
+    border-bottom: none;
+}
+
+.servicio-item:hover {
+    background: linear-gradient(90deg, #f8f9ff 0%, #ffffff 100%);
+    border-left: 3px solid #667eea;
+    padding-left: 12px;
+}
+
+.servicio-label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    margin: 0;
+    font-weight: normal;
+    gap: 12px;
+}
+
+.servicio-checkbox {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: #667eea;
+    flex-shrink: 0;
+}
+
+.servicio-nombre {
+    flex: 1;
+    color: #2c3e50;
+    font-size: 0.95rem;
+}
+
+.servicio-categoria {
+    color: #667eea;
+    font-size: 0.8rem;
+    background: rgba(102, 126, 234, 0.1);
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-weight: 500;
+}
+
+.error-message {
+    color: #dc3545;
+    font-size: 0.875rem;
+    margin-top: 5px;
+    display: none;
+}
+
+.error-message.show {
+    display: block;
+}
+
+.modal-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #dee2e6;
+}
+
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #5a6268;
 }
 </style>
+
+<script>
+// Filtrado de servicios por categoría
+document.addEventListener('DOMContentLoaded', function() {
+    const categoriaSelect = document.getElementById('id_categoria');
+    const serviciosContainer = document.getElementById('serviciosContainer');
+    const mensajeSeleccionar = document.getElementById('mensajeSeleccionarCategoria');
+    
+    function filtrarServicios() {
+        const categoriaSeleccionada = categoriaSelect.value;
+        const servicios = serviciosContainer.querySelectorAll('.servicio-item');
+        
+        if (!categoriaSeleccionada) {
+            serviciosContainer.style.display = 'none';
+            mensajeSeleccionar.style.display = 'block';
+            return;
+        }
+        
+        serviciosContainer.style.display = 'block';
+        mensajeSeleccionar.style.display = 'none';
+        
+        servicios.forEach(servicio => {
+            const categoriaServicio = servicio.getAttribute('data-categoria');
+            if (categoriaServicio === categoriaSeleccionada) {
+                servicio.style.display = 'block';
+            } else {
+                servicio.style.display = 'none';
+                // Desmarcar checkbox si está oculto
+                const checkbox = servicio.querySelector('.servicio-checkbox');
+                if (checkbox) {
+                    checkbox.checked = false;
+                }
+            }
+        });
+    }
+    
+    categoriaSelect.addEventListener('change', filtrarServicios);
+    
+    // Ejecutar al cargar para mostrar servicios de la categoría seleccionada
+    filtrarServicios();
+});
+
+// Manejo del formulario
+document.getElementById('formModificarPromocion').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const promocionId = '{{ promocion.id }}';
+    
+    // Limpiar errores previos
+    document.querySelectorAll('.error-message').forEach(el => {
+        el.textContent = '';
+        el.classList.remove('show');
+    });
+    
+    
+    fetch(`/promociones/modificar/${promocionId}/ajax/`, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            mostrarMensaje(data.message, 'success');
+            cerrarModal('modalEditarPromocion');
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            // Mostrar errores de validación
+            if (data.errors) {
+                Object.keys(data.errors).forEach(field => {
+                    const errorDiv = document.getElementById(`error_${field}`);
+                    if (errorDiv) {
+                        errorDiv.textContent = data.errors[field].join(', ');
+                        errorDiv.classList.add('show');
+                    }
+                });
+            }
+            mostrarMensaje(data.message || 'Error al actualizar la promoción', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        mostrarMensaje('Error al procesar la solicitud', 'error');
+    });
+});
+</script>

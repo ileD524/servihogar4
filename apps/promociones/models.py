@@ -20,6 +20,7 @@ class Promocion(models.Model):
     codigo = models.CharField(max_length=50, unique=True, blank=True, null=True)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     fecha_modificacion = models.DateTimeField(auto_now=True)
+    fecha_eliminacion = models.DateTimeField(blank=True, null=True)
     
     class Meta:
         verbose_name = 'Promoción'
@@ -30,6 +31,36 @@ class Promocion(models.Model):
         return self.titulo
     
     def esta_vigente(self):
+        """Verifica si la promoción está vigente"""
         from django.utils import timezone
         now = timezone.now()
         return self.activa and self.fecha_inicio <= now <= self.fecha_fin
+    
+    def calcular_descuento(self, monto_base):
+        """Calcula el descuento aplicado a un monto base"""
+        if not self.esta_vigente():
+            return 0
+        
+        if self.tipo_descuento == 'porcentaje':
+            descuento = monto_base * (self.valor_descuento / 100)
+        else:  # monto_fijo
+            descuento = self.valor_descuento
+        
+        # El descuento no puede ser mayor al monto base
+        return min(descuento, monto_base)
+    
+    def aplica_a_servicio(self, servicio):
+        """Verifica si la promoción aplica a un servicio específico"""
+        if not self.esta_vigente():
+            return False
+        
+        # Si tiene servicios específicos, verificar si está incluido
+        if self.servicios.exists():
+            return self.servicios.filter(id=servicio.id).exists()
+        
+        # Si tiene categoría, verificar si el servicio pertenece a esa categoría
+        if self.categoria:
+            return servicio.categoria_id == self.categoria_id
+        
+        # Si no tiene servicios ni categoría específica, aplica a todos
+        return True

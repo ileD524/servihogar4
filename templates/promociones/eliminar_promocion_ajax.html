@@ -1,18 +1,18 @@
 {% extends 'base.html' %}
 
-{% block title %}Eliminar Categoría - ServiHogar{% endblock %}
+{% block title %}Eliminar Promoción - ServiHogar{% endblock %}
 
 {% block content %}
 <div class="confirm-container">
     <div class="confirm-card">
-        <h1>Eliminar Categoría</h1>
-        <p class="warning-text">¿Está seguro de que desea eliminar esta categoría?</p>
+        <h1>Eliminar Promoción</h1>
+        <p class="warning-text">¿Está seguro de que desea eliminar esta promoción?</p>
         
         <div class="info-box">
-            <h3>{{ categoria.nombre }}</h3>
-            <p><strong>Descripción:</strong> {{ categoria.descripcion }}</p>
+            <h3>{{ promocion.titulo }}</h3>
+            <p><strong>Descripción:</strong> {{ promocion.descripcion }}</p>
             <p><strong>Estado actual:</strong>
-                {% if categoria.activa %}
+                {% if promocion.activa %}
                     <span class="badge badge-success">Activa</span>
                 {% else %}
                     <span class="badge badge-danger">Inactiva</span>
@@ -20,21 +20,11 @@
             </p>
         </div>
         
-        <div class="alert alert-warning">
-            <strong>Atención:</strong>
-            <ul>
-                <li>Esta categoría tiene <strong>{{ servicios_count }} servicio(s)</strong> asociado(s)</li>
-                <li>Afectará a <strong>{{ profesionales_count }} profesional(es)</strong></li>
-                <li>Todos los servicios de esta categoría serán <strong>desactivados</strong></li>
-                <li>La eliminación es <strong>lógica</strong> (se puede reactivar después)</li>
-            </ul>
-        </div>
-        
         <form method="post" class="confirm-form">
             {% csrf_token %}
             <div class="form-actions">
-                <button type="submit" class="btn btn-danger">✓ Sí, Eliminar Categoría</button>
-                <a href="{% url 'servicios:buscar_categoria' %}" class="btn btn-secondary">✗ No, Cancelar</a>
+                <button type="submit" class="btn btn-danger">✓ Sí, Eliminar Promoción</button>
+                <a href="{% url 'promociones:buscar_promocion' %}" class="btn btn-secondary">✗ No, Cancelar</a>
             </div>
         </form>
     </div>
@@ -159,9 +149,17 @@
     color: white;
 }
 
+.btn-danger:hover {
+    background: #c82333;
+}
+
 .btn-secondary {
     background: #6c757d;
     color: white;
+}
+
+.btn-secondary:hover {
+    background: #5a6268;
 }
 </style>
 {% endblock %}

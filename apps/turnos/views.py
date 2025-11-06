@@ -22,10 +22,20 @@ def es_profesional(user):
 def solicitar_turno(request):
     """Cliente solicita un turno"""
     if request.method == 'POST':
-        form = SolicitarTurnoForm(request.POST)
+        servicio_id = request.POST.get('servicio_id')
+        servicio = None
+        
+        # Obtener el servicio para cargar promociones en el formulario
+        if servicio_id:
+            try:
+                servicio = Servicio.objects.get(id=servicio_id)
+            except Servicio.DoesNotExist:
+                pass
+        
+        form = SolicitarTurnoForm(request.POST, servicio=servicio)
+        
         if form.is_valid():
             # Obtener datos del formulario oculto
-            servicio_id = request.POST.get('servicio_id')
             profesional_id = request.POST.get('profesional_id')
             fecha = request.POST.get('fecha')
             hora = request.POST.get('hora')
@@ -37,7 +47,6 @@ def solicitar_turno(request):
                 return render(request, 'turnos/solicitar_turno.html', {'form': form})
             
             try:
-                servicio = Servicio.objects.get(id=servicio_id)
                 profesional = Profesional.objects.get(id=profesional_id)
                 
                 # Crear el turno
@@ -47,12 +56,54 @@ def solicitar_turno(request):
                 turno.profesional = profesional
                 turno.fecha = fecha
                 turno.hora = hora
-                turno.precio_final = servicio.precio_base
                 turno.latitud = latitud if latitud else None
                 turno.longitud = longitud if longitud else None
+                
+                # Manejar promoción
+                codigo_promocion = form.cleaned_data.get('codigo_promocion')
+                promocion_seleccionada = form.cleaned_data.get('promocion')
+                
+                if codigo_promocion:
+                    # Prioridad 1: Código promocional ingresado
+                    if codigo_promocion.aplica_a_servicio(servicio):
+                        turno.promocion = codigo_promocion
+                        messages.info(request, f'Se aplicó el código promocional: {codigo_promocion.codigo}')
+                    else:
+                        messages.warning(request, f'El código {codigo_promocion.codigo} no aplica a este servicio')
+                        turno.aplicar_promocion_automatica()
+                elif promocion_seleccionada:
+                    # Prioridad 2: Promoción seleccionada manualmente
+                    turno.promocion = promocion_seleccionada
+                    messages.info(request, f'Se aplicó la promoción: {promocion_seleccionada.titulo}')
+                else:
+                    # Prioridad 3: Aplicar automáticamente la mejor promoción
+                    mejor_promo = turno.aplicar_promocion_automatica()
+                    if mejor_promo:
+                        messages.success(request, f'¡Se aplicó automáticamente la promoción "{mejor_promo.titulo}"!')
+                
+                # Calcular precio final con descuento
+                turno.precio_final = turno.calcular_precio_final()
                 turno.save()
                 
-                messages.success(request, 'Turno solicitado exitosamente. Esperando confirmación del profesional.')
+                # Mostrar resumen de precio
+                if turno.promocion:
+                    descuento = turno.calcular_descuento()
+                    precio_base = turno.calcular_precio_base()
+                    messages.success(
+                        request, 
+                        f'Turno solicitado exitosamente. '
+                        f'Precio base: ${precio_base:.2f} - '
+                        f'Descuento: ${descuento:.2f} - '
+                        f'Total: ${turno.precio_final:.2f}. '
+                        f'Esperando confirmación del profesional.'
+                    )
+                else:
+                    messages.success(
+                        request, 
+                        f'Turno solicitado exitosamente. Total: ${turno.precio_final:.2f}. '
+                        f'Esperando confirmación del profesional.'
+                    )
+                
                 return redirect('turnos:ver_turno', id=turno.id)
             except (Servicio.DoesNotExist, Profesional.DoesNotExist):
                 messages.error(request, 'Servicio o profesional no encontrado')
@@ -157,6 +208,108 @@ def obtener_profesionales_disponibles(request):
         
     except Servicio.DoesNotExist:
         return JsonResponse({'error': 'Servicio no encontrado'}, status=404)
+
+
+@user_passes_test(es_cliente)
+def obtener_promociones_disponibles(request):
+    """API para obtener promociones disponibles para un servicio"""
+    servicio_id = request.GET.get('servicio_id')
+    
+    if not servicio_id:
+        return JsonResponse({'promociones': []})
+    
+    try:
+        from apps.promociones.models import Promocion
+        servicio = Servicio.objects.get(id=servicio_id)
+        now = timezone.now()
+        
+        # Buscar promociones vigentes
+        promociones_vigentes = Promocion.objects.filter(
+            activa=True,
+            fecha_inicio__lte=now,
+            fecha_fin__gte=now
+        )
+        
+        # Filtrar las que aplican al servicio
+        promociones_aplicables = []
+        for promo in promociones_vigentes:
+            if promo.aplica_a_servicio(servicio):
+                descuento = promo.calcular_descuento(servicio.precio_base)
+                precio_con_descuento = servicio.precio_base - descuento
+                
+                promociones_aplicables.append({
+                    'id': promo.id,
+                    'titulo': promo.titulo,
+                    'descripcion': promo.descripcion,
+                    'tipo_descuento': promo.get_tipo_descuento_display(),
+                    'valor_descuento': float(promo.valor_descuento),
+                    'descuento_calculado': float(descuento),
+                    'precio_final': float(precio_con_descuento),
+                    'codigo': promo.codigo if promo.codigo else None,
+                    'fecha_fin': promo.fecha_fin.strftime('%d/%m/%Y %H:%M')
+                })
+        
+        return JsonResponse({
+            'promociones': promociones_aplicables,
+            'precio_base': float(servicio.precio_base)
+        })
+        
+    except Servicio.DoesNotExist:
+        return JsonResponse({'error': 'Servicio no encontrado'}, status=404)
+
+
+@user_passes_test(es_cliente)
+def validar_codigo_promocional(request):
+    """API para validar un código promocional"""
+    from apps.promociones.models import Promocion
+    
+    codigo = request.GET.get('codigo', '').strip().upper()
+    servicio_id = request.GET.get('servicio_id')
+    
+    if not codigo or not servicio_id:
+        return JsonResponse({'valido': False, 'mensaje': 'Datos incompletos'})
+    
+    try:
+        servicio = Servicio.objects.get(id=servicio_id)
+        promocion = Promocion.objects.get(codigo__iexact=codigo)
+        
+        if not promocion.esta_vigente():
+            return JsonResponse({
+                'valido': False, 
+                'mensaje': 'El código promocional ha expirado o no está activo'
+            })
+        
+        if not promocion.aplica_a_servicio(servicio):
+            return JsonResponse({
+                'valido': False, 
+                'mensaje': 'Este código no aplica al servicio seleccionado'
+            })
+        
+        descuento = promocion.calcular_descuento(servicio.precio_base)
+        precio_final = servicio.precio_base - descuento
+        
+        return JsonResponse({
+            'valido': True,
+            'mensaje': f'¡Código válido! {promocion.titulo}',
+            'promocion': {
+                'id': promocion.id,
+                'titulo': promocion.titulo,
+                'descripcion': promocion.descripcion,
+                'descuento': float(descuento),
+                'precio_final': float(precio_final)
+            }
+        })
+        
+    except Promocion.DoesNotExist:
+        return JsonResponse({
+            'valido': False, 
+            'mensaje': 'Código promocional no válido'
+        })
+    except Servicio.DoesNotExist:
+        return JsonResponse({
+            'valido': False, 
+            'mensaje': 'Servicio no encontrado'
+        })
 
 
 # CU-24: Modificar Turno

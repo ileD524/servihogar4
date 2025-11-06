@@ -1,111 +1,258 @@
-<div class="promo-detail-header" style="text-align: center; margin-bottom: 30px;">
-    <h3 style="color: #667eea; margin-bottom: 10px;">{{ promocion.titulo }}</h3>
-    <p style="color: #666;">{{ promocion.descripcion }}</p>
-</div>
+{% load static %}
 
-<div class="promo-detail-grid">
-    <div class="promo-detail-item">
-        <strong><i class="fas fa-tag"></i> Código</strong>
-        <span>{{ promocion.codigo }}</span>
-    </div>
-    
-    <div class="promo-detail-item">
-        <strong><i class="fas fa-percentage"></i> Tipo de Descuento</strong>
-        <span>
-            {% if promocion.tipo_descuento == 'porcentaje' %}
-                <span class="badge badge-porcentaje">
-                    <i class="fas fa-percent"></i> Porcentaje
-                </span>
-            {% else %}
-                <span class="badge badge-monto">
-                    <i class="fas fa-dollar-sign"></i> Monto Fijo
-                </span>
-            {% endif %}
-        </span>
-    </div>
-    
-    <div class="promo-detail-item">
-        <strong><i class="fas fa-gift"></i> Valor del Descuento</strong>
-        <span style="font-size: 1.5rem; color: #667eea; font-weight: bold;">
-            {% if promocion.tipo_descuento == 'porcentaje' %}
-                {{ promocion.valor_descuento }}%
-            {% else %}
-                ${{ promocion.valor_descuento }}
-            {% endif %}
-        </span>
-    </div>
-    
-    <div class="promo-detail-item">
-        <strong><i class="fas fa-folder"></i> Categoría</strong>
-        <span>{{ promocion.categoria.nombre }}</span>
-    </div>
-    
-    <div class="promo-detail-item">
-        <strong><i class="fas fa-calendar-alt"></i> Fecha de Inicio</strong>
-        <span>{{ promocion.fecha_inicio|date:"d/m/Y" }}</span>
-    </div>
-    
-    <div class="promo-detail-item">
-        <strong><i class="fas fa-calendar-check"></i> Fecha de Fin</strong>
-        <span>{{ promocion.fecha_fin|date:"d/m/Y" }}</span>
-    </div>
-    
-    <div class="promo-detail-item">
-        <strong><i class="fas fa-toggle-on"></i> Estado</strong>
-        <span>
-            {% if promocion.activa %}
-                <span class="badge badge-success">✓ Activa</span>
-            {% else %}
-                <span class="badge badge-danger">✗ Inactiva</span>
-            {% endif %}
-        </span>
-    </div>
-    
-    <div class="promo-detail-item">
-        <strong><i class="fas fa-clock"></i> Vigencia</strong>
-        <span>
-            {% if promocion.esta_vigente %}
-                <span class="badge badge-info">Vigente</span>
-            {% else %}
-                <span class="badge badge-secondary">No vigente</span>
-            {% endif %}
-        </span>
-    </div>
-    
-    <div class="promo-detail-item">
-        <strong><i class="fas fa-calendar-plus"></i> Fecha de Creación</strong>
-        <span>{{ promocion.fecha_creacion|date:"d/m/Y H:i" }}</span>
-    </div>
-    
-    <div class="promo-detail-item">
-        <strong><i class="fas fa-calendar-edit"></i> Última Modificación</strong>
-        <span>{{ promocion.fecha_modificacion|date:"d/m/Y H:i" }}</span>
-    </div>
-</div>
 
-{% if promocion.servicios.all %}
-<div style="margin-top: 30px;">
-    <h4 style="color: #667eea; margin-bottom: 15px;">
-        <i class="fas fa-list"></i> Servicios Incluidos
-    </h4>
-    <div class="promo-servicios-list">
-        {% for servicio in promocion.servicios.all %}
-        <div class="promo-servicio-card">
-            <strong>{{ servicio.categoria.nombre }}</strong><br>
-            <span style="color: #666;">{{ servicio.nombre }}</span>
+<div class="perfil-modal-container">
+    <!-- Encabezado con foto/icono y datos principales (igual a usuario) -->
+    <div class="perfil-modal-header">
+        <div class="promo-icon-container" style="width: 120px; height: 120px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 4px solid #fff; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);">
+            <i class="fas fa-tag" style="font-size: 60px; color: white;"></i>
         </div>
-        {% endfor %}
+        
+        <div class="perfil-modal-info" style="flex: 1; margin-left: 25px;">
+            <h3 style="font-size: 24px; margin: 0 0 10px 0; color: #2c3e50; font-weight: 600;">{{ promocion.titulo }}</h3>
+            <p style="margin: 5px 0;">
+                {% if promocion.activa %}
+                    <span class="badge badge-success"><i class="fas fa-check-circle"></i> Activa</span>
+                {% else %}
+                    <span class="badge badge-danger"><i class="fas fa-times-circle"></i> Inactiva</span>
+                {% endif %}
+            </p>
+            <p style="color: #5a6c7d; margin: 8px 0; font-size: 15px;">
+                <i class="fas fa-at"></i> {{ promocion.codigo|default:"Sin código" }}
+            </p>
+            <p style="color: #5a6c7d; margin: 8px 0; font-size: 15px;">
+                <i class="fas fa-envelope"></i> {{ promocion.descripcion }}
+            </p>
+            {% if promocion.categoria %}
+            <p style="color: #5a6c7d; margin: 8px 0; font-size: 15px;">
+                <i class="fas fa-phone"></i> {{ promocion.categoria.nombre }}
+            </p>
+            {% endif %}
+        </div>
     </div>
+    
+
+    <!-- Tarjetas de información (3 columnas como en usuario) -->
+    <div class="perfil-modal-detalles" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; margin-top: 30px; border-top: 2px solid #e9ecef; border-bottom: 2px solid #e9ecef;">
+        <div class="perfil-modal-item" style="padding: 20px; background: white; border-right: 2px solid #e9ecef;">
+            <strong style="display: flex; align-items: center; color: #495057; margin-bottom: 8px; font-size: 13px; font-weight: 600;">
+                <i class="fas fa-calendar-plus" style="margin-right: 8px;"></i> Fecha de Registro
+            </strong>
+            <span style="color: #212529; font-size: 14px;">{{ promocion.fecha_creacion|date:"d/m/Y H:i" }}</span>
+        </div>
+        
+        <div class="perfil-modal-item" style="padding: 20px; background: white; border-right: 2px solid #e9ecef;">
+            <strong style="display: flex; align-items: center; color: #495057; margin-bottom: 8px; font-size: 13px; font-weight: 600;">
+                <i class="fas fa-calendar-check" style="margin-right: 8px;"></i> Última Modificación
+            </strong>
+            <span style="color: #212529; font-size: 14px;">{{ promocion.fecha_modificacion|date:"d/m/Y H:i" }}</span>
+        </div>
+        
+        <div class="perfil-modal-item" style="padding: 20px; background: white;">
+            <strong style="display: flex; align-items: center; color: #495057; margin-bottom: 8px; font-size: 13px; font-weight: 600;">
+                <i class="fas fa-toggle-on" style="margin-right: 8px;"></i> Estado
+            </strong>
+            <span>
+                {% if promocion.activa %}
+                    <span class="badge badge-success">✓ Activo</span>
+                {% else %}
+                    <span class="badge badge-danger">✗ Inactivo</span>
+                {% endif %}
+            </span>
+        </div>
+    </div>
+    
+    <!-- Dirección/Categoría (full width como en usuario) -->
+    <div style="padding: 20px; background: white; border-bottom: 2px solid #e9ecef;">
+        <strong style="display: flex; align-items: center; color: #495057; margin-bottom: 8px; font-size: 13px; font-weight: 600;">
+            <i class="fas fa-tags" style="margin-right: 8px;"></i> Categoría
+        </strong>
+        <span style="color: #212529; font-size: 14px;">
+            {% if promocion.categoria %}
+                {{ promocion.categoria.nombre }}
+            {% else %}
+                Todas las categorías
+            {% endif %}
+        </span>
+    </div>
+    
+    <!-- Información del Descuento (similar a "Información del Cliente" en usuario) -->
+    {% if promocion.tipo_descuento %}
+    <div style="margin-top: 30px; padding: 0 20px;">
+        <h4 style="color: #667eea; margin-bottom: 20px; font-size: 18px; font-weight: 600;">
+            <i class="fas fa-gift"></i> Información del Descuento
+        </h4>
+        
+        <div class="perfil-modal-detalles" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
+            <div class="perfil-modal-item" style="padding: 20px; background: white; border: 2px solid #e9ecef; border-radius: 8px; text-align: center;">
+                <strong style="display: block; color: #495057; margin-bottom: 12px; font-size: 13px; font-weight: 600;">
+                    <i class="fas fa-percentage"></i> Tipo de Descuento
+                </strong>
+                <span>
+                    {% if promocion.tipo_descuento == 'porcentaje' %}
+                        <span class="badge" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; font-size: 14px; padding: 8px 16px;">
+                            <i class="fas fa-percent"></i> Porcentaje
+                        </span>
+                    {% else %}
+                        <span class="badge" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; font-size: 14px; padding: 8px 16px;">
+                            <i class="fas fa-dollar-sign"></i> Monto Fijo
+                        </span>
+                    {% endif %}
+                </span>
+            </div>
+            
+            <div class="perfil-modal-item" style="padding: 20px; background: white; border: 2px solid #e9ecef; border-radius: 8px; text-align: center;">
+                <strong style="display: block; color: #495057; margin-bottom: 12px; font-size: 13px; font-weight: 600;">
+                    <i class="fas fa-tag"></i> Valor del Descuento
+                </strong>
+                <span style="font-size: 32px; color: #667eea; font-weight: bold; display: block;">
+                    {% if promocion.tipo_descuento == 'porcentaje' %}
+                        {{ promocion.valor_descuento }}%
+                    {% else %}
+                        ${{ promocion.valor_descuento }}
+                    {% endif %}
+                </span>
+            </div>
+            
+            <div class="perfil-modal-item" style="padding: 20px; background: white; border: 2px solid #e9ecef; border-radius: 8px; text-align: center;">
+                <strong style="display: block; color: #495057; margin-bottom: 12px; font-size: 13px; font-weight: 600;">
+                    <i class="fas fa-calendar-check"></i> Vigencia
+                </strong>
+                <span>
+                    {% if promocion.esta_vigente %}
+                        <span class="badge badge-info" style="font-size: 14px; padding: 8px 16px;">Vigente</span>
+                    {% else %}
+                        <span class="badge" style="background: #6c757d; color: white; font-size: 14px; padding: 8px 16px;">No vigente</span>
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+        
+        <!-- Fechas de vigencia -->
+        <div style="margin-top: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div class="perfil-modal-item" style="padding: 20px; background: white; border: 2px solid #e9ecef; border-radius: 8px;">
+                <strong style="display: flex; align-items: center; color: #495057; margin-bottom: 10px; font-size: 13px; font-weight: 600;">
+                    <i class="fas fa-calendar-alt" style="margin-right: 8px;"></i> Fecha de Inicio
+                </strong>
+                <span style="color: #212529; font-size: 16px; font-weight: 500;">{{ promocion.fecha_inicio|date:"d/m/Y" }}</span>
+            </div>
+            
+            <div class="perfil-modal-item" style="padding: 20px; background: white; border: 2px solid #e9ecef; border-radius: 8px;">
+                <strong style="display: flex; align-items: center; color: #495057; margin-bottom: 10px; font-size: 13px; font-weight: 600;">
+                    <i class="fas fa-calendar-times" style="margin-right: 8px;"></i> Fecha de Fin
+                </strong>
+                <span style="color: #212529; font-size: 16px; font-weight: 500;">{{ promocion.fecha_fin|date:"d/m/Y" }}</span>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Servicios Incluidos (similar a "Servicios que Ofrece" en profesional) -->
+    {% if promocion.servicios.all %}
+    <div style="margin-top: 30px; padding: 0 20px;">
+        <h5 style="color: #333; margin-bottom: 15px; font-size: 16px; font-weight: 600;">
+            <i class="fas fa-list"></i> Servicios Incluidos:
+        </h5>
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px;">
+            {% for servicio in promocion.servicios.all %}
+            <div style="padding: 15px; background: #f8f9fa; border-left: 4px solid #667eea; border-radius: 4px;">
+                <strong style="display: block; color: #333; margin-bottom: 5px; font-size: 14px;">{{ servicio.categoria.nombre }}</strong>
+                <span style="color: #666; font-size: 13px;">{{ servicio.nombre }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% else %}
+    <div style="margin-top: 30px; padding: 15px 20px;">
+        <p style="color: #666; font-style: italic; margin: 0; font-size: 14px;">
+            <i class="fas fa-info-circle"></i> Esta promoción aplica a todos los servicios
+        </p>
+    </div>
+    {% endif %}
 </div>
-{% endif %}
 
 <style>
+.perfil-modal-container {
+    padding: 0;
+    max-width: 100%;
+}
+
+.perfil-modal-header {
+    display: flex;
+    align-items: center;
+    padding: 30px;
+    background: white;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.perfil-modal-foto {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid #fff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.perfil-modal-foto-placeholder {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 40px;
+    font-weight: bold;
+    border: 4px solid #fff;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.perfil-modal-info {
+    flex: 1;
+}
+
+.perfil-modal-info h3 {
+    margin: 0 0 10px 0;
+    font-size: 24px;
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+.perfil-modal-info p {
+    margin: 5px 0;
+    color: #5a6c7d;
+    font-size: 15px;
+}
+
+.perfil-modal-detalles {
+    background: white;
+}
+
+.perfil-modal-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.perfil-modal-item strong {
+    font-weight: 600;
+    color: #495057;
+    font-size: 13px;
+}
+
+.perfil-modal-item span {
+    color: #212529;
+    font-size: 14px;
+}
+
 .badge {
     display: inline-block;
-    padding: 5px 12px;
+    padding: 6px 14px;
     border-radius: 20px;
-    font-size: 0.85rem;
+    font-size: 13px;
     font-weight: 500;
+    text-transform: none;
 }
 
 .badge-success {
@@ -123,18 +270,7 @@
     color: white;
 }
 
-.badge-secondary {
-    background: #6c757d;
-    color: white;
-}
-
-.badge-porcentaje {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-}
-
-.badge-monto {
-    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-    color: white;
+.badge i {
+    margin-right: 5px;
 }
 </style>

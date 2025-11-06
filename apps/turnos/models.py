@@ -37,6 +37,65 @@ class Turno(models.Model):
         
     def __str__(self):
         return f"Turno #{self.id} - {self.servicio.nombre} - {self.estado}"
+    
+    def buscar_promociones_aplicables(self):
+        """Busca todas las promociones que aplican a este turno"""
+        from django.utils import timezone
+        now = timezone.now()
+        
+        # Buscar promociones vigentes que apliquen al servicio
+        promociones = Promocion.objects.filter(
+            activa=True,
+            fecha_inicio__lte=now,
+            fecha_fin__gte=now
+        )
+        
+        promociones_validas = []
+        for promo in promociones:
+            if promo.aplica_a_servicio(self.servicio):
+                promociones_validas.append(promo)
+        
+        return promociones_validas
+    
+    def calcular_precio_base(self):
+        """Calcula el precio base del servicio"""
+        return self.servicio.precio
+    
+    def calcular_descuento(self):
+        """Calcula el descuento aplicado si hay promoción"""
+        if self.promocion and self.promocion.esta_vigente():
+            return self.promocion.calcular_descuento(self.calcular_precio_base())
+        return 0
+    
+    def calcular_precio_final(self):
+        """Calcula el precio final con descuento aplicado"""
+        precio_base = self.calcular_precio_base()
+        descuento = self.calcular_descuento()
+        return precio_base - descuento
+    
+    def aplicar_promocion_automatica(self):
+        """Aplica automáticamente la mejor promoción disponible"""
+        promociones = self.buscar_promociones_aplicables()
+        
+        if not promociones:
+            self.promocion = None
+            self.precio_final = self.calcular_precio_base()
+            return None
+        
+        # Encontrar la promoción con mayor descuento
+        mejor_promocion = None
+        mayor_descuento = 0
+        
+        precio_base = self.calcular_precio_base()
+        for promo in promociones:
+            descuento = promo.calcular_descuento(precio_base)
+            if descuento > mayor_descuento:
+                mayor_descuento = descuento
+                mejor_promocion = promo
+        
+        self.promocion = mejor_promocion
+        self.precio_final = self.calcular_precio_final()
+        return mejor_promocion
 
 
 class Pago(models.Model):

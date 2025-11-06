@@ -1,6 +1,7 @@
 from django import forms
 from .models import Turno, Pago, Calificacion
 from apps.servicios.models import Servicio, Categoria
+from apps.promociones.models import Promocion
 
 class SolicitarTurnoForm(forms.ModelForm):
     """Formulario para solicitar turno (CU-23)"""
@@ -11,6 +12,32 @@ class SolicitarTurnoForm(forms.ModelForm):
         label='Categoría',
         empty_label='Seleccione una categoría',
         widget=forms.Select(attrs={'class': 'form-control', 'id': 'id_categoria'})
+    )
+    
+    # Campo para código promocional
+    codigo_promocion = forms.CharField(
+        max_length=50,
+        required=False,
+        label='Código de promoción',
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Ingrese código promocional (opcional)',
+            'id': 'id_codigo_promocion'
+        }),
+        help_text='Si tienes un código promocional, ingrésalo aquí'
+    )
+    
+    # Campo para seleccionar promoción de lista
+    promocion = forms.ModelChoiceField(
+        queryset=Promocion.objects.none(),
+        required=False,
+        label='Promoción disponible',
+        empty_label='Sin promoción / Aplicar automáticamente',
+        widget=forms.Select(attrs={
+            'class': 'form-control',
+            'id': 'id_promocion'
+        }),
+        help_text='Selecciona una promoción o deja vacío para aplicar automáticamente la mejor'
     )
     
     class Meta:
@@ -35,9 +62,51 @@ class SolicitarTurnoForm(forms.ModelForm):
         }
     
     def __init__(self, *args, **kwargs):
+        servicio = kwargs.pop('servicio', None)
         super().__init__(*args, **kwargs)
-        # Los campos fecha, hora y servicio se manejarán dinámicamente con JavaScript
-        # No los incluimos en el formulario porque se seleccionan desde la grilla
+        
+        # Si se proporciona un servicio, cargar promociones aplicables
+        if servicio:
+            from django.utils import timezone
+            now = timezone.now()
+            
+            # Buscar promociones vigentes para este servicio
+            promociones_vigentes = Promocion.objects.filter(
+                activa=True,
+                fecha_inicio__lte=now,
+                fecha_fin__gte=now
+            )
+            
+            # Filtrar las que aplican al servicio
+            promociones_aplicables = []
+            for promo in promociones_vigentes:
+                if promo.aplica_a_servicio(servicio):
+                    promociones_aplicables.append(promo.id)
+            
+            self.fields['promocion'].queryset = Promocion.objects.filter(
+                id__in=promociones_aplicables
+            )
+    
+    def clean_codigo_promocion(self):
+        """Valida el código promocional si se ingresó"""
+        codigo = self.cleaned_data.get('codigo_promocion', '').strip().upper()
+        
+        if not codigo:
+            return None
+        
+        try:
+            promocion = Promocion.objects.get(codigo__iexact=codigo)
+            
+            if not promocion.esta_vigente():
+                raise forms.ValidationError(
+                    'El código promocional ha expirado o no está activo.'
+                )
+            
+            return promocion
+        except Promocion.DoesNotExist:
+            raise forms.ValidationError(
+                'El código promocional ingresado no es válido.'
+            )
 
 
 class ModificarTurnoForm(forms.ModelForm):
